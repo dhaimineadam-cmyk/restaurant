@@ -13,7 +13,7 @@ export default function MenuLivreur() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/menu/category', {
+        const response = await fetch('https://restaurant-qom1.onrender.com/api/menu/category', {
           headers: {
             'Accept': 'application/json'
           }
@@ -136,7 +136,7 @@ export default function MenuLivreur() {
                     >
                       <div className="relative aspect-w-16 aspect-h-9">
                         <img
-                          src={`http://localhost:8000/storage/${menu.image}`}
+                          src={`https://restaurant-qom1.onrender.com/storage/${menu.image}`}
                           alt={menu.title}
                           className="w-full h-48 object-cover"
                         />

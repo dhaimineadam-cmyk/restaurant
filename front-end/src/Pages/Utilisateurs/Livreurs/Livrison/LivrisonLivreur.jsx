@@ -32,7 +32,7 @@ export default function LivrisonLivreur() {
         const parsedUser = JSON.parse(storedUser);
         const userId = parsedUser.id;
 
-        const response = await fetch(`http://localhost:8000/api/getlivrisonlivreur/${userId}`, {
+        const response = await fetch(`https://restaurant-qom1.onrender.com/api/getlivrisonlivreur/${userId}`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -94,7 +94,7 @@ export default function LivrisonLivreur() {
     setUpdatingStatus(selectedLivraison);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/updateStatuslivrison/${selectedLivraison}`, {
+      const response = await fetch(`https://restaurant-qom1.onrender.com/api/updateStatuslivrison/${selectedLivraison}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

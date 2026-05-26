@@ -29,7 +29,7 @@ export default function StatusLivreur() {
         const parsedUser = JSON.parse(storedUser);
         const userId = parsedUser.id;
 
-        const response = await fetch(`http://localhost:8000/api/getstatus/${userId}`, {
+        const response = await fetch(`https://restaurant-qom1.onrender.com/api/getstatus/${userId}`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -75,7 +75,7 @@ export default function StatusLivreur() {
       const parsedUser = JSON.parse(storedUser);
       const userId = parsedUser.id;
 
-      const response = await fetch(`http://localhost:8000/api/updateStatus/${userId}`, {
+      const response = await fetch(`https://restaurant-qom1.onrender.com/api/updateStatus/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

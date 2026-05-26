@@ -612,7 +612,7 @@ export default function Commande() {
                       <div key={menu.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                         <div className="relative">
                           <img
-                            src={`http://localhost:8000/storage/${menu.image}`}
+                            src={`https://restaurant-qom1.onrender.com/storage/${menu.image}`}
                             alt={menu.title}
                             className="w-full h-40 sm:h-48 object-cover"
                             onError={(e) => {
@@ -652,7 +652,7 @@ export default function Commande() {
                         <div key={menu.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                           <div className="relative">
                             <img
-                              src={`http://localhost:8000/storage/${menu.image}`}
+                              src={`https://restaurant-qom1.onrender.com/storage/${menu.image}`}
                               alt={menu.title}
                               className="w-full h-40 sm:h-48 object-cover"
                               onError={(e) => {

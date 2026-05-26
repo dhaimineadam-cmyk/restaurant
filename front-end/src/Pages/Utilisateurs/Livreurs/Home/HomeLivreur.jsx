@@ -48,7 +48,7 @@ const HomeLivreur = () => {
   useEffect(() => {
     const fetchAdminContact = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/admincontact', {
+        const response = await fetch('https://restaurant-qom1.onrender.com/api/admincontact', {
           headers: {
             'Accept': 'application/json'
           }

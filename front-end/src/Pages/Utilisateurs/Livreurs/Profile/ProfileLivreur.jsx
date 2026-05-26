@@ -41,7 +41,7 @@ export default function ProfileLivreur() {
         }
 
         // Récupérer les données du livreur depuis l'API
-        const response = await fetch(`http://localhost:8000/api/livreurs/${livreurId}`, {
+        const response = await fetch(`https://restaurant-qom1.onrender.com/api/livreurs/${livreurId}`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -134,7 +134,7 @@ export default function ProfileLivreur() {
       }
 
       // Endpoint API pour le livreur
-      const response = await fetch(`http://localhost:8000/api/updateProfile/${livreurId}`, {
+      const response = await fetch(`https://restaurant-qom1.onrender.com/api/updateProfile/${livreurId}`, {
         method: 'PUT', 
         headers: {
           'Content-Type': 'application/json',

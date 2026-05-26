@@ -40,7 +40,7 @@ const LivrisonsAdmin = () => {
   const fetchLivrisons = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8000/api/livrisons?page=${currentPage}`);
+      const response = await axios.get(`https://restaurant-qom1.onrender.com/api/livrisons?page=${currentPage}`);
       const reversedData = [...response.data.data].reverse();
       setLivrisons(reversedData);
       setTotalPages(response.data.last_page);
@@ -58,7 +58,7 @@ const LivrisonsAdmin = () => {
   const fetchLivreurs = async () => {
     try {
       setLoadingLivreurs(true);
-      const response = await axios.get('http://localhost:8000/api/getLivreurActif');
+      const response = await axios.get('https://restaurant-qom1.onrender.com/api/getLivreurActif');
       setLivreurs(response.data);
     } catch (error) {
       console.error('Error fetching livreurs:', error);
@@ -139,7 +139,7 @@ const LivrisonsAdmin = () => {
     
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/livrisons/${selectedLivrison.id_livrison}`, 
+        `https://restaurant-qom1.onrender.com/api/livrisons/${selectedLivrison.id_livrison}`, 
         editForm
       );
       

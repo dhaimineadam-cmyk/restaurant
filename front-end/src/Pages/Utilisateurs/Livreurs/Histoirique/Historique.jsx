@@ -38,7 +38,7 @@ export default function Historique() {
         const userId = parsedUser.id;
 
         const response = await fetch(
-          `http://localhost:8000/api/getlivrisonbylivreur/${userId}`,
+          `https://restaurant-qom1.onrender.com/api/getlivrisonbylivreur/${userId}`,
           {
             headers: {
               Accept: "application/json",

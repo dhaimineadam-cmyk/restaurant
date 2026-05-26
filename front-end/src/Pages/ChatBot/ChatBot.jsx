@@ -154,7 +154,7 @@ export default function ChatBot() {
   // Fetch menu categories
   const fetchMenuCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/menu/category');
+      const response = await axios.get('https://restaurant-qom1.onrender.com/api/menu/category');
       setMenuCategories(response.data);
     } catch (error) {
       console.error('Error fetching menu categories:', error);

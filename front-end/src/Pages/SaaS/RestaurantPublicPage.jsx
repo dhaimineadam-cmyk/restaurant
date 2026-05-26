@@ -57,7 +57,7 @@ export default function RestaurantPublicPage() {
                     <div className="saas-menu-list">
                         {menus.map((menu) => (
                             <article className="saas-menu-card" key={menu.id}>
-                                <img src={menu.image ? `http://localhost:8000/storage/${menu.image}` : "/carte.jpg"} alt={menu.title} />
+                                <img src={menu.image ? `https://restaurant-qom1.onrender.com/storage/${menu.image}` : "/carte.jpg"} alt={menu.title} />
                                 <div>
                                     <h3>{menu.title}</h3>
                                     <p>{menu.description}</p>

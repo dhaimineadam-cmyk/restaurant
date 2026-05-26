@@ -35,7 +35,7 @@ const HomeClient = () => {
       // Fetch latest user data from API
       const fetchUserData = async () => {
         try {
-          const response = await fetch(`http://localhost:8000/api/user/client/${parsedUser.id}`, {
+          const response = await fetch(`https://restaurant-qom1.onrender.com/api/user/client/${parsedUser.id}`, {
             headers: {
               'Accept': 'application/json',
               'Authorization': `Bearer ${token}`

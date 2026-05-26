@@ -1251,7 +1251,7 @@ export default function Reservation() {
                         return (
                           <div key={menu.id} className="flex flex-col items-center bg-white rounded-xl shadow p-4">
                             <img
-                              src={`http://localhost:8000/storage/${menu.image}`}
+                              src={`https://restaurant-qom1.onrender.com/storage/${menu.image}`}
                               alt={menu.title}
                               className="w-32 h-32 object-cover rounded-lg border mb-2"
                             />

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const configuredBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const configuredBaseUrl = process.env.REACT_APP_API_URL || 'https://restaurant-qom1.onrender.com/api';
 const baseURL = configuredBaseUrl.endsWith('/api')
     ? configuredBaseUrl
     : `${configuredBaseUrl.replace(/\/$/, '')}/api`;

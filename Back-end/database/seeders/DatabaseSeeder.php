@@ -12,6 +12,7 @@ use App\Models\Servants;
 use App\Models\Stock;
 use App\Models\Table;
 use Illuminate\Database\Seeder;
+use Database\Seeders\AdminUserSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,6 +35,7 @@ class DatabaseSeeder extends Seeder
         //Servants::factory(10)->create();
         //Table::factory(10)->create();
          //Sales::factory(10)->create();
+         $this->call(AdminUserSeeder::class);
 
     }
 }

@@ -40,7 +40,7 @@ const Orders = () => {
   const fetchOrders = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8000/api/orders?page=${page}`);
+      const response = await axios.get(`https://restaurant-qom1.onrender.com/api/orders?page=${page}`);
       const reversedOrders = [...response.data.data].reverse();
       setOrders(reversedOrders);
       setTotalPages(response.data.last_page);
@@ -65,7 +65,7 @@ const Orders = () => {
   const fetchActiveDeliveryMen = async () => {
     try {
       setLoadingDeliveryMen(true);
-      const response = await axios.get('http://localhost:8000/api/Orders/livreuractif');
+      const response = await axios.get('https://restaurant-qom1.onrender.com/api/Orders/livreuractif');
       setDeliveryMen(response.data);
     } catch (err) {
       console.error('Error fetching delivery men:', err);
@@ -93,7 +93,7 @@ const Orders = () => {
       if (actionType === 'confirmé') {
         await createDelivery();
       } else {
-        await axios.put(`http://localhost:8000/api/orderstatus/${selectedOrderId}`, {
+        await axios.put(`https://restaurant-qom1.onrender.com/api/orderstatus/${selectedOrderId}`, {
           status: 'annulé'
         });
         fetchOrders(currentPage);
@@ -136,7 +136,7 @@ const Orders = () => {
         return;
       }
 
-      await axios.put(`http://localhost:8000/api/orderstatus/${selectedOrderId}`, {
+      await axios.put(`https://restaurant-qom1.onrender.com/api/orderstatus/${selectedOrderId}`, {
         status: 'confirmé'
       });
 
@@ -149,7 +149,7 @@ const Orders = () => {
         id_order: selectedOrderId
       };
 
-      await axios.post('http://localhost:8000/api/livrisons', deliveryData);
+      await axios.post('https://restaurant-qom1.onrender.com/api/livrisons', deliveryData);
       
       const notificationMessage = `Commande confirmée avec succès !`;
       

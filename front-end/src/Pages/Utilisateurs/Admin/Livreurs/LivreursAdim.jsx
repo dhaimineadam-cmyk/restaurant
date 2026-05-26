@@ -45,7 +45,7 @@ const LivreursAdmin = () => {
   const fetchLivreurs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8000/api/livreurs');
+      const response = await axios.get('https://restaurant-qom1.onrender.com/api/livreurs');
       setLivreurs(response.data);
     } catch (error) {
       console.error('Error fetching livreurs:', error);
@@ -133,7 +133,7 @@ const LivreursAdmin = () => {
         password_confirmation: formData.password_confirmation
       };
 
-      await axios.post('http://localhost:8000/api/livreurs', dataToSend);
+      await axios.post('https://restaurant-qom1.onrender.com/api/livreurs', dataToSend);
       setShowAddModal(false);
       fetchLivreurs();
       resetForm();
@@ -192,7 +192,7 @@ const LivreursAdmin = () => {
         password_confirmation: formData.password_confirmation
       };
 
-      await axios.put(`http://localhost:8000/api/livreurs/${selectedLivreur.id_livreur}`, dataToSend);
+      await axios.put(`https://restaurant-qom1.onrender.com/api/livreurs/${selectedLivreur.id_livreur}`, dataToSend);
       setShowEditModal(false);
       fetchLivreurs();
       resetForm();
@@ -225,7 +225,7 @@ const LivreursAdmin = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8000/api/livreurs/${livreurToDelete.id_livreur}`);
+      await axios.delete(`https://restaurant-qom1.onrender.com/api/livreurs/${livreurToDelete.id_livreur}`);
       setShowDeleteConfirmation(false);
       setLivreurToDelete(null);
       fetchLivreurs();
@@ -243,7 +243,7 @@ const LivreursAdmin = () => {
   const handleStatusChange = async () => {
     try {
       const newStatus = selectedLivreur.status === 'actif' ? 'inactif' : 'actif';
-      await axios.put(`http://localhost:8000/api/livreurs/${selectedLivreur.id_livreur}`, {
+      await axios.put(`https://restaurant-qom1.onrender.com/api/livreurs/${selectedLivreur.id_livreur}`, {
         status: newStatus
       });
       setShowStatusModal(false);

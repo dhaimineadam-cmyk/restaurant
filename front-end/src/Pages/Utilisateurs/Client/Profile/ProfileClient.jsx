@@ -69,7 +69,7 @@ export default function ProfileClient() {
       }
 
       // Endpoint API pour le client
-      const response = await fetch(`http://localhost:8000/api/user/client/${storedUser.id}`, {
+      const response = await fetch(`https://restaurant-qom1.onrender.com/api/user/client/${storedUser.id}`, {
         method: 'PUT', 
         headers: {
           'Content-Type': 'application/json',

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../Api/api';
 import { Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-const API_BASE_URL = "http://localhost:8000"; 
+const API_BASE_URL = "https://restaurant-qom1.onrender.com"; 
 
 export default function Login() {
   const [email, setEmail] = useState('');

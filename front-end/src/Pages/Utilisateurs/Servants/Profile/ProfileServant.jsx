@@ -59,7 +59,7 @@ export default function ProfileServant() {
     
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      const response = await fetch(`http://localhost:8000/api/users/${storedUser.id}`, {
+      const response = await fetch(`https://restaurant-qom1.onrender.com/api/users/${storedUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

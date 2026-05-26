@@ -71,7 +71,7 @@ export default function HomeAdmin() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/nombrestatic');
+        const response = await axios.get('https://restaurant-qom1.onrender.com/api/nombrestatic');
         setStats(response.data);
       } catch (error) {
         console.error('Erreur lors de la récupération des statistiques:', error);
