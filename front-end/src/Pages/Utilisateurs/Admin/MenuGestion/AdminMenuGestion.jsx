@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiTrash2, FiMapPin, FiChef } from "react-icons/fi";
+import { FiTrash2, FiMapPin, FiCoffee } from "react-icons/fi";
 import api from "../../../../Api/api";
 import "./AdminMenuGestion.css";
 
@@ -228,7 +228,7 @@ const AdminMenuGestion = () => {
           className={`tab-btn ${tab === "menus" ? "active" : ""}`}
           onClick={() => setTab("menus")}
         >
-          <FiChef /> Menus & Plats
+          <FiCoffee /> Menus & Plats
         </button>
       </div>
 
