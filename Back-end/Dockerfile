@@ -2,7 +2,6 @@ FROM php:8.2-cli
 
 WORKDIR /var/www/html
 
-# System packages + PHP extensions needed by Laravel
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -12,30 +11,25 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
+    libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring bcmath exif pcntl zip gd \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring bcmath exif pcntl zip gd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy application files
 COPY . .
 
-# Install PHP dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Prepare Laravel runtime folders
-RUN cp .env.example .env \
-    && php artisan key:generate --force \
-    && mkdir -p storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache \
-    && php artisan storage:link --quiet
-
-# Ensure the public/storage symlink exists and storage folders have correct permissions
-RUN chmod -R 775 storage bootstrap/cache public
+RUN mkdir -p storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
+    bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD sh -c "php artisan config:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
