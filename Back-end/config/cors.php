@@ -21,7 +21,7 @@ return [
 
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:3000'),
-        'https://restaurant-frontend-ygv3.onrender.com'
+        'https://restaurant-frontend-ygv3.onrender.com',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
         'http://localhost:3001',
