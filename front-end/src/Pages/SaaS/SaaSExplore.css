@@ -1,0 +1,314 @@
+.saas-smart-search {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
+    padding: 20px;
+}
+
+/* Hero Section */
+.saas-ai-hero {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    text-align: center;
+}
+
+.saas-ai-greeting {
+    margin-bottom: 30px;
+}
+
+.saas-ai-greeting h1 {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    margin: 0 0 10px;
+    font-weight: 900;
+}
+
+.saas-ai-greeting p {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+}
+
+/* Search Input */
+.saas-ai-search {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #fff;
+    padding: 16px 22px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.saas-ai-search svg {
+    color: #f25f4c;
+    flex-shrink: 0;
+}
+
+.saas-ai-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #1a1a1a;
+}
+
+.saas-ai-input::placeholder {
+    color: #999;
+}
+
+/* AI Message Bubble */
+.saas-ai-message {
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+.saas-ai-bubble {
+    background: linear-gradient(135deg, #f25f4c 0%, #ff7a6b 100%);
+    color: #fff;
+    padding: 20px 26px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(242, 95, 76, 0.25);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Menus Grid */
+.saas-menus-grid {
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+.saas-menus-header {
+    margin-bottom: 24px;
+}
+
+.saas-menus-header h2 {
+    font-size: 1.8rem;
+    color: #1a1a1a;
+    margin: 0;
+    font-weight: 800;
+}
+
+.saas-menus-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.saas-smart-menu-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.saas-smart-menu-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.saas-smart-menu-card.selected {
+    border-color: #f25f4c;
+    box-shadow: 0 8px 28px rgba(242, 95, 76, 0.25);
+    background: #fff9f7;
+}
+
+.saas-menu-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.saas-menu-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.saas-smart-menu-card:hover .saas-menu-image img {
+    transform: scale(1.1);
+}
+
+.saas-check-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+    background: #f25f4c;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(242, 95, 76, 0.3);
+}
+
+.saas-menu-info {
+    padding: 16px;
+}
+
+.saas-menu-info h3 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.saas-restaurant-name {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.saas-category-name {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.saas-menu-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.saas-price {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #f25f4c;
+}
+
+.saas-availability {
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.saas-availability.available {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.saas-availability.unavailable {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* Action Panel */
+.saas-action-panel {
+    max-width: 1200px;
+    margin: 50px auto;
+    background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 2px solid #f0f0f0;
+    text-align: center;
+}
+
+.saas-action-panel h3 {
+    font-size: 1.6rem;
+    color: #1a1a1a;
+    margin: 0 0 30px;
+    font-weight: 800;
+}
+
+.saas-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.saas-action-btn {
+    padding: 18px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.saas-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.saas-btn-order {
+    background: linear-gradient(135deg, #f25f4c 0%, #ff7a6b 100%);
+    color: #fff;
+}
+
+.saas-btn-order:active {
+    transform: translateY(0);
+}
+
+.saas-btn-reservation {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #fff;
+}
+
+.saas-btn-reservation:active {
+    transform: translateY(0);
+}
+
+.saas-btn-feedback {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: #fff;
+}
+
+.saas-btn-feedback:active {
+    transform: translateY(0);
+}
+
+/* Animations */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .saas-ai-greeting h1 {
+        font-size: 1.8rem;
+    }
+
+    .saas-menus-cards {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .saas-action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .saas-action-panel {
+        padding: 24px;
+    }
+}
