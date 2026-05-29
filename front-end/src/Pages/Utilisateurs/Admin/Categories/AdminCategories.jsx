@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiCheck, FiX, FiSearch, FiAlertTriangle } from 'react-icons/fi';
+import api, { addRestaurantParam, getApiErrorMessage, getCurrentRestaurantId } from "../../../../Api/api";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -29,7 +29,9 @@ const Categories = () => {
   const fetchCategories = async (page = 1) => {
     setLoadingCategories(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/categories?page=${page}`);
+      const response = await api.get("/categories", {
+        params: addRestaurantParam({ page })
+      });
       if (response.data?.data) {
         setCategories(response.data.data);
         setCurrentPage(response.data.current_page);
@@ -39,7 +41,7 @@ const Categories = () => {
       }
       setError(null);
     } catch (error) {
-      setError("Erreur lors du chargement des catégories");
+      setError(getApiErrorMessage(error, "Erreur lors du chargement des catégories"));
       console.error(error);
       setCategories([]);
     } finally {
@@ -58,27 +60,31 @@ const Categories = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/categories", newCategory);
+      const restaurantId = getCurrentRestaurantId();
+      const payload = restaurantId
+        ? { ...newCategory, restaurant_id: restaurantId }
+        : newCategory;
+      const response = await api.post("/categories", payload);
       setCategories([...categories, response.data]);
       setNewCategory({ title: "", slug: "" });
       setSuccess("Catégorie ajoutée avec succès");
       setError(null);
     } catch (error) {
-      setError("Erreur lors de l'ajout de la catégorie");
+      setError(getApiErrorMessage(error, "Erreur lors de l'ajout de la catégorie"));
       console.error(error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/categories/${id}`);
+      await api.delete(`/categories/${id}`);
       setCategories(categories.filter((cat) => cat.id !== id));
       setSuccess("La catégorie a été supprimée avec succès");
       setError(null);
       setShowDeleteModal(false);
       setCategoryToDelete(null);
     } catch (error) {
-      setError("Une erreur est survenue lors de la suppression de la catégorie");
+      setError(getApiErrorMessage(error, "Une erreur est survenue lors de la suppression de la catégorie"));
       console.error(error);
     }
   };
@@ -94,14 +100,18 @@ const Categories = () => {
     }
   
       try {
-          const response = await axios.put(`http://127.0.0.1:8000/api/categories/${editCategory.id}`, editCategory);
+          const restaurantId = getCurrentRestaurantId();
+          const payload = restaurantId
+            ? { ...editCategory, restaurant_id: editCategory.restaurant_id || restaurantId }
+            : editCategory;
+          const response = await api.put(`/categories/${editCategory.id}`, payload);
           setCategories(categories.map((category) =>
               category.id === editCategory.id ? response.data : category
       ));
       setEditCategory(null);
           setSuccess("Catégorie modifiée avec succès");
       } catch (error) {
-          setError("Erreur lors de la modification de la catégorie");
+          setError(getApiErrorMessage(error, "Erreur lors de la modification de la catégorie"));
           console.error(error);
       }
   };

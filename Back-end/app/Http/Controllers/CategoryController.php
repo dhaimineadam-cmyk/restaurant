@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use PDOException;
 
 class CategoryController extends Controller
@@ -30,8 +32,11 @@ class CategoryController extends Controller
             ]);
 
             return Category::create($category);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (PDOException | Exception $e) {
-            return response()->json(["message" => "Erreur lors de la creation de la categorie"], 404);
+            Log::error('Erreur lors de la creation de la categorie', ['error' => $e->getMessage()]);
+            return response()->json(["message" => "Erreur lors de la creation de la categorie"], 500);
         }
     }
 
@@ -67,8 +72,11 @@ class CategoryController extends Controller
             $category->update($categoryData);
 
             return response()->json($category, 200);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (PDOException | Exception $e) {
-            return response()->json(["message" => "Erreur lors de la mise a jour de la categorie"], 404);
+            Log::error('Erreur lors de la mise a jour de la categorie', ['error' => $e->getMessage()]);
+            return response()->json(["message" => "Erreur lors de la mise a jour de la categorie"], 500);
         }
     }
 

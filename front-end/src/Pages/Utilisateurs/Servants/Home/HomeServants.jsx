@@ -1,328 +1,108 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaUserCircle, FaHome, FaPhoneAlt, FaEnvelope, FaUser, FaUtensils, FaChair } from "react-icons/fa";
-import { MdRestaurantMenu, MdOutlineShoppingCart, MdOutlineDeliveryDining, MdOutlineTableRestaurant } from "react-icons/md";
-import { HiOutlineClipboardList } from "react-icons/hi";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ClipboardList, CookingPot, Grid3X3, Headphones, PackageCheck, ReceiptText, Table2, Truck } from 'lucide-react';
+import api from '../../../../Api/api';
+import { ActionTile, Badge, LoadingScreen, RolePage } from '../../../../Components/DesignSystem/SRMS';
 
 const HomeServants = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
   const [adminContact, setAdminContact] = useState(null);
-  const menuRef = useRef();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
     if (!token || !storedUser) {
-      navigate("/login");
-    } else {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.role === "admin") {
-        navigate("/user/admin");
-      } else if (parsedUser.role === "client") {
-        navigate("/user/client");
-      } else {
-        setUser(parsedUser);
-        setTimeout(() => setLoading(false), 1200);
-      }
+      navigate('/login');
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    const fetchAdminContact = async () => {
-      try {
-        const response = await fetch('https://restaurant-qom1.onrender.com/api/admincontact', {
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setAdminContact(data[0]);
-          }
-        } else {
-          console.error("Failed to fetch admin contact:", response.status);
-        }
-      } catch (error) {
-        console.error("Error fetching admin contact:", error);
-      }
-    };
-
-    fetchAdminContact();
-  }, []);
-
-  useEffect(() => {
-    const firstLogin = sessionStorage.getItem("firstLogin");
-    if (!firstLogin && user) {
-      setMessage(`Bienvenue ${user.name} 🎉`);
-      setShowSuccessMessage(true);
-      sessionStorage.setItem("firstLogin", "true");
-      setTimeout(() => setShowSuccessMessage(false), 4000);
+    const parsedUser = JSON.parse(storedUser);
+    if (parsedUser.role === 'admin' || parsedUser.role === 'client') {
+      navigate(`/user/${parsedUser.role}`);
+      return;
     }
-  }, [user]);
+
+    setUser(parsedUser);
+    setLoading(false);
+  }, [navigate]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    api.get('/admincontact')
+      .then(({ data }) => setAdminContact(Array.isArray(data) ? data[0] : data))
+      .catch((error) => console.error('Erreur contact admin:', error));
   }, []);
-
-  const toggleMenu = () => setMenuVisible(!menuVisible);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("firstLogin");
-    navigate("/login");
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-        <p className="mt-4 text-blue-500 font-semibold">Chargement en cours...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen label="Preparation de l espace servant..." />;
 
   return (
-    <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 py-6 relative">
-      {/* Toast Bienvenue */}
-      {showSuccessMessage && (
-        <div className="fixed top-4 right-4 z-50 w-[90%] sm:w-auto">
-          <div className="bg-green-500 text-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 animate-fade-in-down">
-            <img
-              src={`https://ui-avatars.com/api/?name=${user?.name}&background=0D8ABC&color=fff&rounded=true&size=40`}
-              alt="avatar"
-              className="w-8 h-8 rounded-full"
-            />
-            <span className="text-sm sm:text-base">{message}</span>
-            <button
-              className="ml-2 text-white hover:text-gray-200"
-              onClick={() => setShowSuccessMessage(false)}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Avatar et Menu */}
-      {user && (
-        <div className="absolute top-4 right-4" ref={menuRef}>
-          <div className="relative inline-block">
-            <img
-              src={`https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff&rounded=true&size=100`}
-              alt="avatar"
-              className="rounded-full w-10 h-10 sm:w-12 sm:h-12 cursor-pointer border-2 border-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              onClick={toggleMenu}
-            />
-
-            {menuVisible && (
-              <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-xl shadow-2xl z-40 p-3 sm:p-4 transform transition-all duration-300 animate-fade-in-down backdrop-blur-sm border border-gray-100">
-                <div className="text-center border-b pb-2 sm:pb-3 mb-2 sm:mb-3">
-                  <h5 className="text-gray-800 font-semibold text-sm sm:text-base">{user.name}</h5>
-                  <p className="text-xs sm:text-sm text-gray-500">{user.email}</p>
-                </div>
-                <div className="flex justify-around">
-                  <button 
-                    onClick={() => navigate("/")} 
-                    className="text-gray-600 hover:text-green-600 transform transition-all duration-300 hover:scale-110 p-2"
-                    title="Accueil"
-                  >
-                    <FaHome size={22} />
-                  </button>
-                  <button 
-                    onClick={() => navigate("/user/servant/profil")} 
-                    className="text-gray-600 hover:text-blue-600 transform transition-all duration-300 hover:scale-110 p-2"
-                    title="Profil"
-                  >
-                    <FaUserCircle size={22} />
-                  </button>
-                  <button 
-                    onClick={() => navigate("/gerer/ventes")}
-                    className="text-gray-600 hover:text-indigo-600 transform transition-all duration-300 hover:scale-110 p-2"
-                    title="Commandes"
-                  >
-                    <HiOutlineClipboardList size={22} />
-                  </button>
-                  <button 
-                    onClick={handleLogout} 
-                    className="text-gray-600 hover:text-red-500 transform transition-all duration-300 hover:scale-110 p-2"
-                    title="Déconnexion"
-                  >
-                    <FaSignOutAlt size={22} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Titre */}
-      <h2 className="text-center text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 mt-12 sm:mt-0">
-        🍽 Bienvenue sur votre espace servant
-      </h2>
-
-      {/* Cards for actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto px-2 sm:px-4">
-        {/* Voir les commandes en ligne Card */}
-        <div
-          className="group bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/commandes-en-ligne")}
-        >
-          <div className="bg-blue-100 group-hover:bg-blue-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <MdOutlineShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-2 sm:mb-3">Voir les commandes en ligne</h3>
-          <p className="text-xs sm:text-sm text-blue-700 group-hover:text-blue-800 transition-colors duration-300">
-            Gérez et suivez les commandes en ligne des clients.
-          </p>
-        </div>
-
-        {/* Passer une commande locale Card */}
-        <div
-          className="group bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/commandes-locales")}
-        >
-          <div className="bg-green-100 group-hover:bg-green-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <FaUtensils className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-green-900 mb-2 sm:mb-3">Passer une commande locale</h3>
-          <p className="text-xs sm:text-sm text-green-700 group-hover:text-green-800 transition-colors duration-300">
-            Enregistrez une nouvelle commande pour un client sur place.
-          </p>
-        </div>
-
-        {/* Voir les livraisons Card */}
-        <div
-          className="group bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/livraisons")}
-        >
-          <div className="bg-orange-100 group-hover:bg-orange-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <MdOutlineDeliveryDining className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-orange-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-orange-900 mb-2 sm:mb-3">Voir les livraisons</h3>
-          <p className="text-xs sm:text-sm text-orange-700 group-hover:text-orange-800 transition-colors duration-300">
-            Suivez et gérez les livraisons en cours.
-          </p>
-        </div>
-
-        {/* Voir les réservations Card */}
-        <div
-          className="group bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/reservations")}
-        >
-          <div className="bg-pink-100 group-hover:bg-pink-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <MdOutlineTableRestaurant className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-pink-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-pink-900 mb-2 sm:mb-3">Voir les réservations</h3>
-          <p className="text-xs sm:text-sm text-pink-700 group-hover:text-pink-800 transition-colors duration-300">
-            Gérez les réservations de tables des clients.
-          </p>
-        </div>
-
-        {/* Gestion des tables Card */}
-        <div
-          className="group bg-gradient-to-br from-indigo-50 to-indigo-100 hover:from-indigo-100 hover:to-indigo-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/tables")}
-        >
-          <div className="bg-indigo-100 group-hover:bg-indigo-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <FaChair className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-indigo-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-indigo-900 mb-2 sm:mb-3">Gestion des tables</h3>
-          <p className="text-xs sm:text-sm text-indigo-700 group-hover:text-indigo-800 transition-colors duration-300">
-            Gérez la disponibilité et l'état des tables du restaurant.
-          </p>
-        </div>
-
-        {/* Voir le menu Card */}
-        <div
-          className="group bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1"
-          onClick={() => navigate("/user/servant/menu")}
-        >
-          <div className="bg-purple-100 group-hover:bg-purple-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <MdRestaurantMenu className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-purple-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-purple-900 mb-2 sm:mb-3">Voir le menu</h3>
-          <p className="text-xs sm:text-sm text-purple-700 group-hover:text-purple-800 transition-colors duration-300">
-            Consultez la carte et les plats disponibles.
-          </p>
-        </div>
-
-        {/* Contact Support Card */}
-        <div
-          className="group bg-gradient-to-br from-cyan-50 to-cyan-100 hover:from-cyan-100 hover:to-cyan-200 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer transform hover:-translate-y-1 sm:col-span-2"
-        >
-          <div className="bg-cyan-100 group-hover:bg-cyan-200 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300">
-            <FaPhoneAlt className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-cyan-600" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-cyan-900 mb-4 sm:mb-5">Contactez le support</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-            <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-              <FaUser className="text-cyan-600" />
-              <div>
-                <p className="text-xs text-gray-500">Nom</p>
-                <p className="text-sm font-semibold text-cyan-900">
-                  {adminContact ? adminContact.name : 'Chargement...'}
-                </p>
-              </div>
+    <RolePage
+      user={user}
+      title="Espace Servant"
+      badge="Service en salle"
+      subtitle="Une interface compacte pour tablette : tables, commandes locales, commandes en ligne, livraisons et reservations restent accessibles en un geste."
+      profilePath="/user/servant/profil"
+      onLogout={handleLogout}
+      aside={
+        <aside className="space-y-4">
+          <div className="srms-card p-5">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-srms-bordeaux">Mode service</p>
+            <h2 className="mt-2 text-xl font-extrabold text-srms-ink">Plan de salle rapide</h2>
+            <div className="mt-5 grid grid-cols-4 gap-2">
+              {Array.from({ length: 12 }, (_, index) => (
+                <div key={index} className={`aspect-square rounded-lg border ${index % 4 === 0 ? 'border-amber-300 bg-amber-100' : index % 5 === 0 ? 'border-red-300 bg-red-100' : 'border-emerald-300 bg-emerald-100'}`} />
+              ))}
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-              <FaPhoneAlt className="text-cyan-600" />
-              <div>
-                <p className="text-xs text-gray-500">Téléphone</p>
-                <p className="text-sm font-semibold text-cyan-900">
-                  {adminContact ? adminContact.num : 'Chargement...'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-              <FaEnvelope className="text-cyan-600" />
-              <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="text-sm font-semibold text-cyan-900">
-                  {adminContact ? adminContact.email : 'Chargement...'}
-                </p>
-              </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Badge tone="success">Libre</Badge>
+              <Badge tone="warning">Reservee</Badge>
+              <Badge tone="danger">Occupee</Badge>
             </div>
           </div>
-        </div>
+          <div className="srms-card p-5">
+            <Headphones className="text-srms-gold" />
+            <h2 className="mt-3 text-xl font-extrabold text-srms-ink">Support</h2>
+            <p className="mt-2 text-sm text-stone-600">{adminContact?.name || 'Administrateur'}</p>
+            <p className="text-sm font-bold text-srms-bordeaux">{adminContact?.num || adminContact?.email || 'Contact indisponible'}</p>
+          </div>
+        </aside>
+      }
+    >
+      <div className="grid gap-4 md:grid-cols-2">
+        <ActionTile icon={ReceiptText} title="Commandes en ligne" description="Suivre les commandes entrantes et les transmettre en cuisine." tone="blue" onClick={() => navigate('/user/servant/commandes-en-ligne')} meta="Live" />
+        <ActionTile icon={CookingPot} title="Commande locale" description="Prendre une commande sur place, table par table." tone="green" onClick={() => navigate('/user/servant/commandes-locales')} />
+        <ActionTile icon={Truck} title="Livraisons" description="Verifier les livraisons et l etat de preparation." tone="gold" onClick={() => navigate('/user/servant/livraisons')} />
+        <ActionTile icon={ClipboardList} title="Reservations" description="Voir les arrivees prevues et preparer la salle." tone="red" onClick={() => navigate('/user/servant/reservations')} />
+        <ActionTile icon={Table2} title="Tables" description="Changer statut, disponibilite et suivi de salle." tone="sage" onClick={() => navigate('/user/servant/tables')} />
+        <ActionTile icon={PackageCheck} title="Menu" description="Consulter la carte disponible pendant le service." tone="gold" onClick={() => navigate('/user/servant/menu')} />
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-200 py-6 mt-8 sm:mt-12 text-center text-gray-700 text-xs sm:text-sm">
-        Foody Restaurant | Espace Servant
-      </footer>
-
-      {/* Add the animation styles */}
-      <style>{`
-        .animate-fade-in-down {
-          animation: fadeInDown 0.7s ease-out;
-        }
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-    </div>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {['En attente', 'En preparation', 'Pret'].map((column, index) => (
+          <div key={column} className="srms-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-extrabold text-srms-ink">{column}</h2>
+              <Grid3X3 size={18} className="text-srms-gold" />
+            </div>
+            <div className="mt-4 space-y-3">
+              {[1, 2].map((item) => (
+                <div key={item} className="rounded-lg border border-stone-200 bg-white/70 p-3">
+                  <p className="font-bold text-srms-ink">Table {index * 2 + item}</p>
+                  <p className="text-sm text-stone-500">Commande exemple</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </RolePage>
   );
 };
 

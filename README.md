@@ -1,403 +1,171 @@
-# Smart Restaurant Management System - SRMS SaaS
+# Smart Restaurant Management System (SRMS)
 
-SRMS est une application web full-stack pour la gestion de restaurants. Le projet original permettait de gerer un seul restaurant. Il a ete etendu pour devenir une plateforme SaaS multi-restaurants, tout en gardant les anciennes fonctionnalites.
+Ce dépôt contient une application web full-stack pour la gestion de restaurants (backend Laravel + frontend React) et une évolution en plateforme SaaS multi-restaurants.
 
-## Stack Technique
+Ce README rassemble les informations utiles pour installer, configurer et dépanner le projet.
 
-Backend:
-- Laravel 10
-- PHP 8.2
-- MySQL 8
-- Laravel Sanctum
-- API REST
+## Technologie
 
-Frontend:
-- React
-- React Router
-- Axios
-- TailwindCSS
-- Bootstrap
-- Lucide React
+- Backend: Laravel 10, PHP 8.2, MySQL
+- Frontend: React (Create React App), TailwindCSS
+- Auth: Laravel Sanctum
+- Infrastructure: Docker / docker-compose (fichiers fournis)
 
-Infrastructure:
-- Docker
-- Docker Compose
-- MySQL
-- phpMyAdmin
+## Structure du dépôt
 
-## Objectif Du Projet
+- `Back-end/` : code Laravel (API, migrations, seeders)
+- `front-end/` : application React
+- `docker-compose.yaml` : définition des services (backend, frontend, mysql, phpmyadmin)
 
-Le projet permet maintenant deux types d'utilisation:
+## Prérequis
 
-1. Gestion restaurant classique:
-- gestion des menus
-- gestion des categories
-- gestion des tables
-- gestion des reservations
-- gestion des commandes
-- gestion des livraisons
-- gestion des livreurs
-- gestion des servants
-- gestion des stocks
-- gestion des fournisseurs
-- gestion des ventes
-- gestion des reclamations
-- gestion des feedbacks
-- generation de rapports
+- Docker & Docker Compose (recommandé) ou PHP, Composer, MySQL, Node.js / npm installés localement
 
-2. Plateforme SaaS multi-restaurants:
-- plusieurs restaurants sur la meme plateforme
-- page publique pour chaque restaurant
-- recherche globale de restaurants, plats et categories
-- filtres avances
-- notes et avis
-- geolocalisation
-- dashboard restaurant
-- systeme d'abonnements SaaS
+## Installation (Docker)
 
-## Roles Utilisateurs
+1. Depuis la racine du projet (là où se trouve `docker-compose.yaml`) :
 
-Le projet gere les roles suivants:
-
-| Role | Description |
-|---|---|
-| admin | Gestion complete de la plateforme et du restaurant |
-| owner | Proprietaire d'un restaurant SaaS |
-| client | Consultation menus, commandes, reservations, avis |
-| servant | Gestion operationnelle des tables, commandes et reservations |
-| livreur | Gestion des livraisons et statut de disponibilite |
-
-## Anciennes Fonctionnalites Conservees
-
-Les fonctionnalites existantes du projet SRMS sont conservees:
-
-- authentification admin, client, servant et livreur
-- dashboard admin
-- menu restaurant
-- categories
-- tables
-- commandes locales
-- commandes en ligne
-- reservations
-- livraisons
-- livreurs
-- servants
-- stocks
-- fournisseurs
-- ventes
-- rapports
-- reclamations
-- feedbacks
-- paiement
-- profil utilisateur
-- carte/localisation
-
-## Nouvelles Fonctionnalites SaaS
-
-### Multi-Restaurant
-
-Nouvelle table:
-
-```text
-restaurants
-```
-
-Champs principaux:
-- id
-- owner_id
-- nom
-- slug
-- description
-- logo
-- banner
-- adresse
-- ville
-- telephone
-- email
-- type_cuisine
-- horaires
-- status
-- abonnement_plan
-- latitude
-- longitude
-- delivery_available
-- is_halal
-- is_vegetarian_friendly
-- minimum_order_price
-
-Les tables suivantes peuvent maintenant etre reliees a un restaurant avec `restaurant_id`:
-- menus
-- categories
-- orders
-- reservations
-- stocks
-- fournisseurs
-- livreurs
-- servants
-- sales
-- tables
-- users
-
-Les champs sont nullable pour ne pas casser les anciennes donnees.
-
-### Recherche Intelligente
-
-Endpoint:
-
-```http
-GET /api/search?q=pizza
-```
-
-La recherche retourne:
-- restaurants
-- menus
-- categories
-
-Filtres disponibles:
-- ville
-- cuisine
-- prix min
-- prix max
-- note minimum
-- disponibilite
-- livraison disponible
-- halal
-- vegetarien
-
-Exemples:
-
-```http
-GET /api/search?q=pizza
-GET /api/search?q=sushi&ville=Casablanca
-GET /api/search?cuisine=italien&delivery=1
-GET /api/search?min_price=20&max_price=100&available=1
-```
-
-### Pages Publiques Restaurants
-
-Frontend:
-
-```text
-/restaurants
-/restaurant/:slug
-```
-
-Exemples:
-
-```text
-http://localhost:3000/restaurants
-http://localhost:3000/restaurant/pizza-casa
-```
-
-La page publique affiche:
-- logo
-- banniere
-- description
-- ville
-- cuisine
-- categories
-- menus
-- note moyenne
-- nombre d'avis
-- livraison disponible
-- adresse
-
-### Avis Et Notes
-
-Nouvelles tables:
-
-```text
-restaurant_reviews
-menu_reviews
-```
-
-Les avis restaurant contiennent:
-- user_id
-- restaurant_id
-- rating
-- comment
-
-Les avis menu contiennent:
-- user_id
-- menu_id
-- restaurant_id
-- rating
-- comment
-
-### Geolocalisation
-
-Les restaurants ont maintenant:
-- latitude
-- longitude
-
-Endpoint:
-
-```http
-GET /api/restaurants/nearby?lat=33.5731&lng=-7.5898&radius=20
-```
-
-### Abonnements SaaS
-
-Nouvelles tables:
-
-```text
-plans
-subscriptions
-payments
-```
-
-Plans prevus:
-- Basic
-- Premium
-- Enterprise
-
-## Architecture
-
-```text
-Navigateur
-   |
-   v
-Frontend React
-   |
-   v
-Laravel API REST
-   |
-   v
-MySQL
-   |
-   v
-phpMyAdmin
-```
-
-Ports Docker:
-
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
-| phpMyAdmin | http://localhost:8081 |
-| MySQL | localhost:3306 |
-
-## Installation Avec Docker
-
-Ouvrir un terminal dans le dossier qui contient `docker-compose.yaml`:
-
-```cmd
-cd "C:\Users\PC\Downloads\Smart-restaurant-management-system-PFE-main (3)\Smart-restaurant-management-system-PFE-main"
-```
-
-Lancer le projet:
-
-```cmd
+```bash
 docker compose up -d --build
 ```
 
-Voir les conteneurs:
+2. Appliquer les migrations et seeders (si nécessaire) :
 
-```cmd
-docker compose ps
+```bash
+docker compose exec backend php artisan migrate --force
+docker compose exec backend php artisan db:seed --class=AdminUserSeeder
 ```
 
-Appliquer les migrations:
+3. Vider le cache Laravel si vous changez `.env` :
 
-```cmd
-docker compose exec backend php artisan migrate
-```
-
-Vider les caches Laravel:
-
-```cmd
+```bash
 docker compose exec backend php artisan config:clear
-docker compose exec backend php artisan route:clear
 docker compose exec backend php artisan cache:clear
+docker compose exec backend php artisan route:clear
 ```
 
-Arreter le projet:
+## Installation (développement local sans Docker)
 
-```cmd
-docker compose down
-```
+Backend :
 
-Voir les logs:
-
-```cmd
-docker compose logs -f
-```
-
-Voir les logs backend uniquement:
-
-```cmd
-docker compose logs -f backend
-```
-
-## phpMyAdmin
-
-URL:
-
-```text
-http://localhost:8081
-```
-
-Connexion root:
-
-```text
-Serveur: mysql
-Utilisateur: root
-Mot de passe: root
-```
-
-Connexion utilisateur application:
-
-```text
-Serveur: mysql
-Utilisateur: restaurant_user
-Mot de passe: restaurant_pass
-Base de donnees: restaurant_db
-```
-
-## Installation Sans Docker
-
-Backend:
-
-```cmd
+```bash
 cd Back-end
 composer install
+cp .env.example .env
 php artisan key:generate
+# configurer .env (DB_* etc.)
 php artisan migrate
-php artisan serve
+php artisan db:seed --class=AdminUserSeeder
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Frontend:
+Frontend :
 
-```cmd
+```bash
 cd front-end
 npm install
 npm start
 ```
 
-URL:
+## Variables d'environnement importantes
 
-```text
-Frontend: http://localhost:3000
-Backend: http://localhost:8000
+- `DB_HOST` : si vous exécutez localement (sans Docker) mettez `DB_HOST=127.0.0.1`. Si vous utilisez Docker, utilisez le nom du service MySQL défini dans `docker-compose.yaml` (souvent `mysql`).
+- `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` : base de données config
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD` : utilisés par `Database\\Seeders\\AdminUserSeeder` pour créer un compte administrateur si inexistant. Exemples dans `Back-end/.env` :
+
+```
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin123!
 ```
 
-## Authentification
+Le seeder crée l'utilisateur admin uniquement s'il n'existe pas. Pour modifier un admin déjà présent, voir la section « Mettre à jour l'admin existant ».
 
-Endpoints:
+## Créer / Mettre à jour l'administrateur
 
-```http
-POST /api/login
-POST /api/register
-POST /api/logout
-GET /api/user
+Option A — (re)créer via le seeder : éditez `Back-end/.env` pour définir `ADMIN_EMAIL` et `ADMIN_PASSWORD`, puis exécutez :
+
+```bash
+cd Back-end
+php artisan db:seed --class=AdminUserSeeder
 ```
 
-Connexion:
+Note : le seeder ne remplace pas un utilisateur existant avec le même email.
 
-```json
-{
-  "email": "admin@test.com",
+Option B — mettre à jour un admin existant (recommandé si l'admin existe déjà) :
+
+```bash
+cd Back-end
+php artisan tinker
+
+# Dans Tinker
+$user = App\\Models\\User::where('email', 'admin@example.com')->first();
+$user->email = 'nouvel@exemple.com';
+$user->password = Hash::make('NouveauMotDePasse123!');
+$user->save();
+```
+
+Option C — via SQL :
+
+1. Générez un hash Bcrypt localement :
+
+```bash
+php -r "echo password_hash('NouveauMotDePasse123!', PASSWORD_BCRYPT).PHP_EOL;"
+```
+
+2. Puis mettez à jour la table `users` :
+
+```sql
+UPDATE users SET email='nouvel@exemple.com', password='[HASH]' WHERE email='admin@example.com';
+```
+
+## Commandes utiles
+
+- Lancer les migrations : `php artisan migrate`
+- Exécuter les seeders : `php artisan db:seed --class=AdminUserSeeder`
+- Vider le cache config : `php artisan config:clear`
+- Démarrer le frontend (dev) : `cd front-end && npm start`
+
+## Dépannage fréquent
+
+- Erreur de connexion à la base (ex: "getaddrinfo for mysql failed") : vérifiez `DB_HOST` dans `Back-end/.env`. Si vous êtes en local sans Docker, remplacez `DB_HOST=mysql` par `DB_HOST=127.0.0.1` puis exécutez :
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+```
+
+- Si vous utilisez Docker, assurez-vous que le service MySQL est démarré et que `DB_HOST` correspond au nom du service (ex: `mysql`).
+
+- Seeder admin ne crée pas d'utilisateur : le seeder vérifie si un utilisateur avec cet email existe déjà. Si vous voulez forcer la mise à jour du mot de passe, utilisez Tinker.
+
+## Endpoints API (exemples)
+
+- `POST /api/login`
+- `POST /api/register`
+- `POST /api/logout`
+- `GET /api/user`
+
+## Frontend
+
+Le frontend est une application Create React App dans `front-end/`. Pour développer :
+
+```bash
+cd front-end
+npm install
+npm start
+```
+
+## Informations supplémentaires
+
+Consultez `Back-end/README.md` pour des informations générales sur Laravel et `front-end/README.md` pour les commandes Create React App.
+
+---
+
+Si vous voulez, je peux :
+- mettre `DB_HOST=127.0.0.1` dans `Back-end/.env` (si vous êtes en local),
+- ajouter `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `Back-end/.env`,
+- ou exécuter les commandes `php artisan` (vous devrez lancer ces commandes dans votre terminal local).
+
   "password": "password"
 }
 ```

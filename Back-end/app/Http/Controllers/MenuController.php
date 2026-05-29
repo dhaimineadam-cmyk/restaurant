@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Menu;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use PDOException;
 
 class MenuController extends Controller
@@ -16,10 +18,13 @@ class MenuController extends Controller
             $categoryId = $request->query('category_id');
             $restaurantId = $request->query('restaurant_id');
 
+            $perPage = (int) $request->query('per_page', 7);
+            $perPage = max(1, min($perPage, 100));
+
             $menus = Menu::with(['category', 'restaurant'])
                 ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
                 ->when($restaurantId, fn ($query) => $query->where('restaurant_id', $restaurantId))
-                ->paginate(7);
+                ->paginate($perPage);
 
             $categories = Category::query()
                 ->when($restaurantId, fn ($query) => $query->where('restaurant_id', $restaurantId))
@@ -81,7 +86,7 @@ class MenuController extends Controller
                 'description' => 'required|string',
                 'price' => 'required|numeric',
                 'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
-                'category_id' => 'required|numeric',
+                'category_id' => 'required|exists:categories,id',
                 'restaurant_id' => 'nullable|exists:restaurants,id',
                 'is_available' => 'nullable|boolean',
                 'speciality_tags' => 'nullable|array',
@@ -94,8 +99,11 @@ class MenuController extends Controller
             return response()->json([
                 'success' => 'menu bien cree',
             ]);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (PDOException | Exception $e) {
-            return response()->json(["message" => "Erreur lors de la creation du menu"], 404);
+            Log::error('Erreur lors de la creation du menu', ['error' => $e->getMessage()]);
+            return response()->json(["message" => "Erreur lors de la creation du menu"], 500);
         }
     }
 
@@ -116,7 +124,7 @@ class MenuController extends Controller
                 'slug' => 'required|string',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'category_id' => 'required|numeric',
+                'category_id' => 'required|exists:categories,id',
                 'restaurant_id' => 'nullable|exists:restaurants,id',
                 'is_available' => 'nullable|boolean',
                 'speciality_tags' => 'nullable|array',
@@ -145,8 +153,11 @@ class MenuController extends Controller
             $menu->save();
 
             return response()->json(['success' => 'Menu bien modifie']);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (PDOException | Exception $e) {
-            return response()->json(["message" => "Erreur lors de la mise a jour du menu"], 404);
+            Log::error('Erreur lors de la mise a jour du menu', ['error' => $e->getMessage()]);
+            return response()->json(["message" => "Erreur lors de la mise a jour du menu"], 500);
         }
     }
 

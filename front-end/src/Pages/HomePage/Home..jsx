@@ -1,99 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Home.css';
+import { CalendarCheck, ChefHat, MapPin, Search, ShoppingBag, Star, Utensils } from 'lucide-react';
 import logo from '../Images/logo2.jpg';
 
 const Home = () => {
-    const navigate = useNavigate();
-    const [isConnected, setIsConnected] = useState(false);
-    const [userRole, setUserRole] = useState('');
+  const navigate = useNavigate();
+  const [session, setSession] = useState({ connected: false, role: '' });
 
-    useEffect(() => {
-        const user = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
-        
-        if (user && token) {
-            setIsConnected(true);
-            const userData = JSON.parse(user);
-            setUserRole(userData.role);
-        }
-    }, []);
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
 
-    const handleReservation = () => {
-        if (!isConnected) {
-            navigate('/login');
-            return;
-        }
+    if (user && token) {
+      const userData = JSON.parse(user);
+      setSession({ connected: true, role: userData.role });
+    }
+  }, []);
 
-        switch (userRole) {
-            case 'admin':
-                navigate('/user/admin');
-                break;
-            case 'client':
-                navigate('/user/client');
-                break;
-            case 'servant':
-                navigate('/user/servant');
-                break;
-            default:
-                navigate('/login');
-        }
-    };
+  const spacePath = useMemo(() => {
+    if (session.role === 'admin') return '/user/admin';
+    if (session.role === 'client') return '/user/client';
+    if (session.role === 'livreur') return '/user/livreur';
+    if (session.role === 'servant') return '/user/servant';
+    return '/login';
+  }, [session.role]);
 
   return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Section Hero */}
-            <div className="relative min-h-screen">
-                {/* Background Image */}
-                <div className="absolute inset-0">
-                    <img
-                        src={logo}
-                        alt="Restaurant Background"
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black opacity-50"></div>
-                </div>
+    <div className="srms-dark-page overflow-hidden">
+      <section className="relative min-h-[calc(100vh-72px)]">
+        <img src={logo} alt="Salle de restaurant" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-srms-ink via-srms-ink/78 to-srms-bordeaux/58" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-srms-ink to-transparent" />
 
-                {/* Content */}
-                <div className="relative z-0 pt-16 xs:pt-20 flex flex-col items-center justify-center min-h-screen text-white px-4">
-                    <h1 className="text-4xl xs:text-5xl md:text-6xl font-bold text-center mb-4 xs:mb-6 animate-fade-in">
-                        Bienvenue chez Restaurant
-                    </h1>
-                    
-                    <p className="text-lg xs:text-xl md:text-2xl text-center mb-6 xs:mb-8 max-w-[320px] xs:max-w-2xl animate-fade-in-delay">
-                        Découvrez une expérience culinaire exceptionnelle
-                    </p>
-
-                    {isConnected ? (
-                        <div className="text-center animate-scale-in">
-                            <h2 className="text-xl xs:text-2xl font-semibold mb-3 xs:mb-4">
-                                Bienvenue {userRole === 'admin' ? 'Administrateur' : 
-                                         userRole === 'client' ? 'Client' : 
-                                         userRole === 'servant' ? 'Serveur' : ''}
-                            </h2>
-                            <button
-                                onClick={handleReservation}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 xs:py-3 md:py-4 px-7 xs:px-8 md:px-12 rounded-full text-base xs:text-lg md:text-xl transition-all duration-300 transform hover:scale-105"
-                            >
-                                Accéder à mon espace
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="text-center animate-scale-in">
-                            <button
-                                onClick={handleReservation}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 xs:py-3 md:py-4 px-7 xs:px-8 md:px-12 rounded-full text-base xs:text-lg md:text-xl transition-all duration-300 transform hover:scale-105"
-                            >
-                                Réserver maintenant
-                            </button>
-                            <p className="mt-3 xs:mt-4 text-sm">
-                                Connectez-vous pour accéder à toutes nos fonctionnalités
-                            </p>
-                        </div>
-                    )}
-                </div>
+        <div className="relative mx-auto grid min-h-[calc(100vh-72px)] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+          <div className="max-w-3xl">
+            <span className="srms-chip border-srms-gold/40 bg-srms-gold/15 text-srms-cream">
+              <ChefHat size={16} /> Smart Restaurant Management System
+            </span>
+            <h1 className="srms-display mt-7 text-5xl font-extrabold leading-[1.02] text-srms-cream md:text-7xl">
+              Une experience restaurant plus rapide, plus belle, plus fluide.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-srms-cream/82">
+              Reservations, menus, commandes, tables et livraisons reunis dans une interface premium pensee pour les equipes et les clients.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate(session.connected ? spacePath : '/restaurants')}
+                className="srms-button srms-button-primary"
+              >
+                {session.connected ? 'Acceder a mon espace' : 'Explorer les restaurants'}
+                <Search size={18} />
+              </button>
+              <button type="button" onClick={() => navigate('/menu')} className="srms-button srms-button-secondary">
+                Voir la carte
+                <Utensils size={18} />
+              </button>
             </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            {[
+              { icon: CalendarCheck, title: 'Reservations', text: 'Creneaux, tables et confirmations en un parcours.' },
+              { icon: ShoppingBag, title: 'Commandes', text: 'Panier fluide, suivi et historique client.' },
+              { icon: MapPin, title: 'Livraisons', text: 'Livreurs, adresses et statuts lisibles sur mobile.' },
+              { icon: Star, title: 'Experience', text: 'Avis, reclamations et pages restaurant publiques.' },
+            ].map((item) => (
+              <div key={item.title} className="srms-card-dark p-5 transition duration-200 hover:-translate-y-1">
+                <item.icon className="text-srms-gold" size={26} />
+                <h2 className="mt-4 text-xl font-extrabold text-srms-cream">{item.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-srms-cream/68">{item.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      <section className="bg-srms-ink px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
+          {[
+            ['4', 'espaces metier', 'Admin, client, servant et livreur gardent chacun leurs priorites.'],
+            ['24/7', 'pilotage operationnel', 'Les donnees critiques restent visibles et actionnables.'],
+            ['100%', 'responsive', 'Concu pour desktop, tablette de service et mobile livraison.'],
+          ].map(([value, label, text]) => (
+            <div key={label} className="border-t border-srms-gold/30 pt-5">
+              <p className="text-4xl font-extrabold text-srms-gold">{value}</p>
+              <p className="mt-1 font-bold text-srms-cream">{label}</p>
+              <p className="mt-2 text-sm leading-6 text-srms-cream/62">{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 };
 

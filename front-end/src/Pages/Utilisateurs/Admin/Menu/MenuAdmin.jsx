@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiFilter, FiSearch, FiAlertTriangle } from 'react-icons/fi';
+import api, { addRestaurantParam, getApiErrorMessage, getCurrentRestaurantId } from "../../../../Api/api";
 
 const Menu2 = () => {
     const navigate = useNavigate();
+    const storageBaseUrl = api.defaults.baseURL.replace(/\/api$/, '');
       useEffect(() => {
         const token = localStorage.getItem("token");
         const user = localStorage.getItem("user");
@@ -55,15 +56,14 @@ const Menu2 = () => {
         setIsLoading(true);
         try {
             // Construire l'URL avec les paramètres de filtrage
-            let url = `http://127.0.0.1:8000/api/menus?page=${page}&per_page=${itemsPerPage}`;
-            if (selectedCategory) {
-                url += `&category_id=${selectedCategory}`;
-            }
-            if (searchQuery) {
-                url += `&search=${searchQuery}`;
-            }
-
-            const response = await axios.get(url);
+            const response = await api.get("/menus", {
+                params: addRestaurantParam({
+                    page,
+                    per_page: itemsPerPage,
+                    ...(selectedCategory ? { category_id: selectedCategory } : {}),
+                    ...(searchQuery ? { search: searchQuery } : {})
+                })
+            });
             console.log('API Response:', response.data);
 
             if (response.data) {
@@ -79,7 +79,7 @@ const Menu2 = () => {
                 setError("La structure de la réponse de l'API est incorrecte.");
             }
         } catch (err) {
-            setError("Erreur lors du chargement des menus.");
+            setError(getApiErrorMessage(err, "Erreur lors du chargement des menus."));
             console.error('Erreur API:', err);
         } finally {
             setIsLoading(false);
@@ -99,15 +99,14 @@ const Menu2 = () => {
     const handlePageChange = async (pageNumber) => {
         setIsLoading(true);
         try {
-            let url = `http://127.0.0.1:8000/api/menus?page=${pageNumber}&per_page=${itemsPerPage}`;
-            if (selectedCategory) {
-                url += `&category_id=${selectedCategory}`;
-            }
-            if (searchQuery) {
-                url += `&search=${searchQuery}`;
-            }
-
-            const response = await axios.get(url);
+            const response = await api.get("/menus", {
+                params: addRestaurantParam({
+                    page: pageNumber,
+                    per_page: itemsPerPage,
+                    ...(selectedCategory ? { category_id: selectedCategory } : {}),
+                    ...(searchQuery ? { search: searchQuery } : {})
+                })
+            });
             console.log('Page Change Response:', response.data);
 
             if (response.data) {
@@ -118,7 +117,7 @@ const Menu2 = () => {
                 setFilteredMenus(menusData);
             }
         } catch (err) {
-            setError("Erreur lors du chargement des menus.");
+            setError(getApiErrorMessage(err, "Erreur lors du chargement des menus."));
             console.error('Erreur changement de page:', err);
         } finally {
             setIsLoading(false);
@@ -126,7 +125,7 @@ const Menu2 = () => {
     };
 
     const handleAddMenu = async () => {
-        if (!newMenu.title || !newMenu.slug || !newMenu.description || !newMenu.price || !newMenu.category_id) {
+        if (!newMenu.title || !newMenu.slug || !newMenu.description || !newMenu.price || !newMenu.category_id || !newMenu.image) {
             setError("Veuillez remplir tous les champs requis.");
             return;
         }
@@ -137,8 +136,12 @@ const Menu2 = () => {
             Object.entries(newMenu).forEach(([key, value]) => {
                 if (value !== null) formData.append(key, value);
             });
+            const restaurantId = getCurrentRestaurantId();
+            if (restaurantId && !formData.has("restaurant_id")) {
+                formData.append("restaurant_id", restaurantId);
+            }
 
-            await axios.post("http://127.0.0.1:8000/api/menus", formData, {
+            await api.post("/menus", formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
@@ -147,7 +150,7 @@ const Menu2 = () => {
             setError(null);
             await fetchMenusAndCategories(currentPage);
         } catch (error) {
-            setError("Erreur lors de l'ajout du menu.");
+            setError(getApiErrorMessage(error, "Erreur lors de l'ajout du menu."));
             console.error('Erreur ajout menu:', error);
         } finally {
             setIsLoading(false);
@@ -157,13 +160,13 @@ const Menu2 = () => {
     const handleDelete = async (id) => {
         setIsLoading(true);
             try {
-                await axios.delete(`http://127.0.0.1:8000/api/menus/${id}`);
+                await api.delete(`/menus/${id}`);
                 setSuccess("Menu supprimé avec succès");
             setShowDeleteModal(false);
             setMenuToDelete(null);
             await fetchMenusAndCategories(currentPage);
             } catch (err) {
-                setError("Erreur lors de la suppression.");
+                setError(getApiErrorMessage(err, "Erreur lors de la suppression."));
             console.error('Erreur suppression:', err);
         } finally {
             setIsLoading(false);
@@ -184,11 +187,15 @@ const Menu2 = () => {
             formData.append('description', editMenu.description);
             formData.append('price', editMenu.price);
             formData.append('category_id', editMenu.category_id);
+            const restaurantId = getCurrentRestaurantId();
+            if (editMenu.restaurant_id || restaurantId) {
+                formData.append('restaurant_id', editMenu.restaurant_id || restaurantId);
+            }
             if (editMenu.image instanceof File) {
                 formData.append('image', editMenu.image);
             }
 
-            await axios.post(`http://127.0.0.1:8000/api/menus/${editMenu.id}?_method=PUT`, formData, {
+            await api.post(`/menus/${editMenu.id}?_method=PUT`, formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
@@ -196,7 +203,7 @@ const Menu2 = () => {
             setEditMenu(null);
             await fetchMenusAndCategories(currentPage);
         } catch (err) {
-            setError("Erreur lors de la modification.");
+            setError(getApiErrorMessage(err, "Erreur lors de la modification."));
             console.error('Erreur modification:', err);
         } finally {
             setIsLoading(false);
@@ -586,7 +593,7 @@ const Menu2 = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {editMenu.image && (
                                                             <img
-                                                                src={`http://127.0.0.1:8000/storage/${editMenu.image}`}
+                                                                src={`${storageBaseUrl}/storage/${editMenu.image}`}
                                                                 alt={editMenu.title}
                                                                 className="h-10 w-10 rounded-full object-cover"
                                                             />
@@ -638,7 +645,7 @@ const Menu2 = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {menu.image && (
                                                             <img
-                                                                src={`http://127.0.0.1:8000/storage/${menu.image}`}
+                                                                src={`${storageBaseUrl}/storage/${menu.image}`}
                                                                 alt={menu.title}
                                                                 className="h-10 w-10 rounded-full object-cover"
                                                             />

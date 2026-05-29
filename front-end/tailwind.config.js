@@ -6,6 +6,23 @@ export default {
     ],
     theme: {
       extend: {
+        colors: {
+          srms: {
+            ink: '#17120f',
+            charcoal: '#241c18',
+            bordeaux: '#7f1d1d',
+            wine: '#511111',
+            gold: '#d6a84f',
+            cream: '#fff7e8',
+            ivory: '#fffaf2',
+            sage: '#5f7f68',
+            terracotta: '#c45a31',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          display: ['Playfair Display', 'Georgia', 'serif'],
+        },
         animation: {
           'fade-in-down': 'fade-in-down 0.5s ease-out',
           'progress': 'progress 3s linear forwards',
