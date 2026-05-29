@@ -1,0 +1,9 @@
+yamlservices:
+  - type: web
+    name: restaurant
+    runtime: docker
+    dockerfilePath: ./Back-end/Dockerfile
+    startCommand: sh -c "php artisan migrate --force && php artisan db:seed --class=AdminUserSeeder && php artisan serve --host=0.0.0.0 --port=8000"
+    envVars:
+      - key: DB_CONNECTION
+        value: pgsql
