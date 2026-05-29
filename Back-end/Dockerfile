@@ -31,5 +31,5 @@ RUN mkdir -p storage/framework/sessions \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
-
-CMD sh -c "php artisan config:clear && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=8000"
+ENV APP_ENV=production
+CMD sh -c "php artisan config:clear && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --class=AdminUserSeeder --force && php artisan serve --host=0.0.0.0 --port=8000"
