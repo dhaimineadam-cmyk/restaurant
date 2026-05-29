@@ -30,6 +30,9 @@ RUN mkdir -p storage/framework/sessions \
     bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 8000
-ENV APP_ENV=production
-CMD sh -c "echo 'APP_NAME=SRMS' > .env && echo 'APP_ENV=production' >> .env && echo 'APP_KEY=' >> .env && echo 'APP_DEBUG=false' >> .env && echo 'APP_URL=${APP_URL}' >> .env && echo 'DB_CONNECTION=pgsql' >> .env && echo 'DB_HOST=${DB_HOST}' >> .env && echo 'DB_PORT=5432' >> .env && echo 'DB_DATABASE=${DB_DATABASE}' >> .env && echo 'DB_USERNAME=${DB_USERNAME}' >> .env && echo 'DB_PASSWORD=${DB_PASSWORD}' >> .env && echo 'ADMIN_EMAIL=${ADMIN_EMAIL}' >> .env && echo 'ADMIN_PASSWORD=${ADMIN_PASSWORD}' >> .env && echo 'SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS}' >> .env && echo 'SESSION_DOMAIN=${SESSION_DOMAIN}' >> .env && php artisan key:generate --force && php artisan config:clear && php artisan migrate --force && php artisan db:seed --class=AdminUserSeeder --force && php artisan serve --host=0.0.0.0 --port=8000"
+
+CMD ["/start.sh"]
