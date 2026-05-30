@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from '../../../../Api/api';
 import { Link, useNavigate } from "react-router-dom";
 import { X, Check, Trash2, Edit2, Plus, AlertTriangle, Search, ArrowLeft, Info, Printer } from "lucide-react";
 
@@ -76,7 +76,7 @@ const Servants = () => {
 
   const fetchServants = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/servants");
+      const response = await api.get('/servants');
       setServants(response.data);
     } catch (error) {
       setError("Erreur lors du chargement des servants");
@@ -109,7 +109,7 @@ const Servants = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/servants", newServant);
+      const response = await api.post('/servants', newServant);
       setServants([...servants, response.data]);
       setNewServant({ cin: "", name: "", email: "", phone: "", address: "", password: "" });
       setSuccess("Servant ajouté avec succès");
@@ -123,7 +123,7 @@ const Servants = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/servants/${id}`);
+      await api.delete(`/servants/${id}`);
       setServants(servants.filter((servant) => servant.id !== id));
       setSuccess("Servant supprimé avec succès");
       setError(null);
@@ -146,7 +146,7 @@ const Servants = () => {
     }
 
     try {
-      const response = await axios.put(`http://127.0.0.1:8000/api/servants/${editServant.id}`, editServant);
+      const response = await api.put(`/servants/${editServant.id}`, editServant);
       setServants(servants.map(servant => servant.id === editServant.id ? response.data : servant));
       setEditServant(null);
       setSuccess("Servant mis à jour avec succès");

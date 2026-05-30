@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../../Api/api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -19,7 +19,7 @@ const Ticket = () => {
     useEffect(() => {
         const fetchVente = async () => {
             try {
-                const res = await axios.get(`http://127.0.0.1:8000/api/sales/${id}`);
+                const res = await api.get(`/sales/${id}`);
                 setVente(res.data);
             } catch (error) {
                 console.error("Erreur lors du chargement :", error);

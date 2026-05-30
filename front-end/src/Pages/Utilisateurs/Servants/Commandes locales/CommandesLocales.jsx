@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from '../../../../Api/api';
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, Pencil, Trash2, ChevronLeft, ChevronRight, 
@@ -40,7 +40,7 @@ const CommandesLocales = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/sales?page=${page}`);
+      const response = await api.get(`/sales?page=${page}`);
       if (response.data) {
         setVentes(response.data.data || []);
         setPagination({
@@ -59,7 +59,7 @@ const CommandesLocales = () => {
   useEffect(() => {
     const fetchServants = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/servants");
+        const response = await api.get('/servants');
         setServants(response.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des serveurs:", error);
@@ -89,7 +89,7 @@ const CommandesLocales = () => {
   // Suppression d'une vente
   const handleDelete = async (saleId) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/sales/${saleId}`);
+      await api.delete(`/sales/${saleId}`);
       setSuccessMessage("✅ Vente supprimée avec succès !");
       fetchVentes(pagination.currentPage);
       setTimeout(() => setSuccessMessage(""), 3000);

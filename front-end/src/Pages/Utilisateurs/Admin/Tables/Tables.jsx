@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from '../../../../Api/api';
 
 const Tables = () => {
   const [tables, setTables] = useState([]);
@@ -53,7 +53,7 @@ const Tables = () => {
   const fetchLastTableNumber = async () => {
     try {
       // Récupérer la dernière page
-      const response = await axios.get(`http://127.0.0.1:8000/api/tables?page=${totalPages}`);
+      const response = await api.get(`/tables?page=${totalPages}`);
       const lastPageTables = response.data.data;
       
       if (lastPageTables && lastPageTables.length > 0) {
@@ -93,7 +93,7 @@ const Tables = () => {
   // Charger les tables depuis l'API
   const fetchTables = async (page = 1) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/tables?page=${page}`);
+      const response = await api.get(`/tables?page=${page}`);
       if (response.data?.data) {
         setTables(response.data.data);
         setCurrentPage(response.data.current_page);
@@ -162,7 +162,7 @@ const Tables = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/tables", newTable);
+      const response = await api.post('/tables', newTable);
       setTables([...tables, response.data]);
       await generateTableName(); // Générer un nouveau nom pour la prochaine table
       setSuccess("Table ajoutée avec succès");
@@ -176,7 +176,7 @@ const Tables = () => {
   // Supprimer une table
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/tables/${id}`);
+      await api.delete(`/tables/${id}`);
       setTables(tables.filter((table) => table.id !== id));
       setSuccess("Table supprimée avec succès");
       setError(null);
@@ -221,7 +221,7 @@ const Tables = () => {
     }
 
     try {
-      const response = await axios.put(`http://127.0.0.1:8000/api/tables/${editTable.id}`, editTable);
+      const response = await api.put(`/tables/${editTable.id}`, editTable);
       setTables(tables.map((table) => (table.id === editTable.id ? response.data : table)));
       setEditTable(null);
       setSuccess("Table mise à jour avec succès");

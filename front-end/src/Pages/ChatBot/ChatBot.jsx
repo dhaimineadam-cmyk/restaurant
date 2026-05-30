@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../Api/api';
 import { useNavigate } from 'react-router-dom';
 import { FaRobot, FaPaperPlane } from 'react-icons/fa';
 
@@ -154,7 +154,7 @@ export default function ChatBot() {
   // Fetch menu categories
   const fetchMenuCategories = async () => {
     try {
-      const response = await axios.get('https://restaurant-qom1.onrender.com/api/menu/category');
+      const response = await api.get('/menu/category');
       setMenuCategories(response.data);
     } catch (error) {
       console.error('Error fetching menu categories:', error);

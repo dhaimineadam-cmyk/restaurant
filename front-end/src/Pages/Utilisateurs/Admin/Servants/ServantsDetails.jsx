@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, MapPin, IdCard, AlertCircle, CheckCircle, Calendar, FileText, Printer } from 'lucide-react';
-import axios from 'axios';
+import api from '../../../../Api/api';
 
 const ServantsDetails = () => {
   const { id } = useParams();
@@ -14,7 +14,7 @@ const ServantsDetails = () => {
     const fetchServantDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://127.0.0.1:8000/api/servants/${id}`);
+        const response = await api.get(`/servants/${id}`);
         setServant(response.data);
         setError(null);
       } catch (err) {

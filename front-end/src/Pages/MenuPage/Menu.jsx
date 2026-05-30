@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FaUtensils } from 'react-icons/fa';
-import api from '../../Api/api';
+import api, { storageUrl } from '../../Api/api';
 
 const Menu = () => {
   const [menus, setMenus] = useState([]);
@@ -113,10 +113,10 @@ const Menu = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">
                   {menus.filter(menu => menu.category_id === category.id).map((item) => (
                     <div key={item.id} className="bg-white shadow-lg xs:shadow-xl rounded-xl xs:rounded-2xl overflow-hidden hover:shadow-2xl transition-transform transform hover:scale-[1.02] animate-fade-in-up flex flex-col items-center">
-                      <img 
-                        src={`http://127.0.0.1:8000/storage/${item.image}`} 
-                        alt={item.title} 
-                        className="w-full h-36 xs:h-40 sm:h-48 object-cover" 
+                      <img
+                        src={storageUrl(item.image)}
+                        alt={item.title}
+                        className="w-full h-36 xs:h-40 sm:h-48 object-cover"
                       />
                       <div className="p-4 xs:p-6 flex flex-col gap-2 w-full items-center">
                         <h3 className="text-lg xs:text-xl font-semibold text-gray-800 text-center">{item.title}</h3>

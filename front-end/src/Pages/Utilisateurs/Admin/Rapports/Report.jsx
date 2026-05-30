@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from '../../../../Api/api';
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, Calendar, BarChart2, AlertCircle } from 'lucide-react';
 
@@ -29,10 +29,7 @@ const Report = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/report", {
-        from,
-        to
-      });
+      const res = await api.post('/report', { from, to });
       setSales(res.data.sales);
     } catch (err) {
       setError("Une erreur s'est produite lors de la génération du rapport.");
@@ -43,10 +40,8 @@ const Report = () => {
   };
 
   const exportToExcel = () => {
-    const url = `http://127.0.0.1:8000/api/export-sales`;
-  
-    axios
-      .post(url, { from, to }, { responseType: 'blob' })
+    api
+      .post('/export-sales', { from, to }, { responseType: 'blob' })
       .then((response) => {
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(new Blob([response.data]));

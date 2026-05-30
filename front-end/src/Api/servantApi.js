@@ -1,146 +1,56 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'https://restaurant-qom1.onrender.com/api';
-
-// Fonction pour récupérer le token
-const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-// Configuration des headers avec le token
-const getHeaders = () => {
-  return {
-    headers: {
-      'Authorization': `Bearer ${getToken()}`,
-      'Accept': 'application/json'
-    }
-  };
-};
-
-// Commandes en ligne
 export const getCommandesEnLigne = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/commandes-en-ligne`, getHeaders());
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/commandes-en-ligne');
+  return response.data;
 };
 
 export const updateStatusCommandeEnLigne = async (commandeId, status) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/commandes-en-ligne/${commandeId}/status`,
-      { status },
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.put(`/commandes-en-ligne/${commandeId}/status`, { status });
+  return response.data;
 };
 
-// Commandes locales
 export const getCommandesLocales = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/commandes-locales`, getHeaders());
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/commandes-locales');
+  return response.data;
 };
 
 export const createCommandeLocale = async (commandeData) => {
-  try {
-    const response = await axios.post(
-      `${API_URL}/commandes-locales`,
-      commandeData,
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post('/commandes-locales', commandeData);
+  return response.data;
 };
 
 export const updateStatusCommandeLocale = async (commandeId, status) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/commandes-locales/${commandeId}/status`,
-      { status },
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.put(`/commandes-locales/${commandeId}/status`, { status });
+  return response.data;
 };
 
-// Livraisons
 export const getLivraisons = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/livraisons`, getHeaders());
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/livraisons');
+  return response.data;
 };
 
 export const updateStatusLivraison = async (livraisonId, status) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/livraisons/${livraisonId}/status`,
-      { status },
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.put(`/livraisons/${livraisonId}/status`, { status });
+  return response.data;
 };
 
-// Réservations
 export const getReservations = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/reservations`, getHeaders());
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/reservations');
+  return response.data;
 };
 
 export const updateStatusReservation = async (reservationId, status) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/reservations/${reservationId}/status`,
-      { status },
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.put(`/reservations/${reservationId}/status`, { status });
+  return response.data;
 };
 
-// Tables
 export const getTables = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/tables`, getHeaders());
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/tables');
+  return response.data;
 };
 
 export const updateStatusTable = async (tableId, status) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/tables/${tableId}/status`,
-      { status },
-      getHeaders()
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-}; 
+  const response = await api.put(`/tables/${tableId}/status`, { status });
+  return response.data;
+};

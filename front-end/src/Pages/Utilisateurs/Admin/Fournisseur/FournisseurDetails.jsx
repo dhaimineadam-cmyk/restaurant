@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, Phone, Mail, MapPin, User, FileText, Package, Plus, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
-import axios from 'axios';
+import api from '../../../../Api/api';
 
 const FournisseurDetails = () => {
   const { id } = useParams();
@@ -15,7 +15,7 @@ const FournisseurDetails = () => {
     const fetchFournisseurDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://127.0.0.1:8000/api/fournisseurs/${id}`);
+        const response = await api.get(`/fournisseurs/${id}`);
         
         // La réponse contient un tableau avec [stocks, fournisseur]
         if (response.data && Array.isArray(response.data) && response.data.length === 2) {

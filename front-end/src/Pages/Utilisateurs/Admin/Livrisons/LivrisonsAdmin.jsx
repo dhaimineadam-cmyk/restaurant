@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../../../Api/api';
 import { FaEye, FaSpinner, FaSearch, FaFilter, FaArrowLeft, FaPrint, FaDownload, FaTimes, FaEdit } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -40,7 +40,7 @@ const LivrisonsAdmin = () => {
   const fetchLivrisons = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://restaurant-qom1.onrender.com/api/livrisons?page=${currentPage}`);
+      const response = await api.get(`/livrisons?page=${currentPage}`);
       const reversedData = [...response.data.data].reverse();
       setLivrisons(reversedData);
       setTotalPages(response.data.last_page);
@@ -58,7 +58,7 @@ const LivrisonsAdmin = () => {
   const fetchLivreurs = async () => {
     try {
       setLoadingLivreurs(true);
-      const response = await axios.get('https://restaurant-qom1.onrender.com/api/getLivreurActif');
+      const response = await api.get('/getLivreurActif');
       setLivreurs(response.data);
     } catch (error) {
       console.error('Error fetching livreurs:', error);
@@ -138,10 +138,7 @@ const LivrisonsAdmin = () => {
     setErrors({});
     
     try {
-      const response = await axios.put(
-        `https://restaurant-qom1.onrender.com/api/livrisons/${selectedLivrison.id_livrison}`, 
-        editForm
-      );
+      const response = await api.put(`/livrisons/${selectedLivrison.id_livrison}`, editForm);
       
       setShowEditModal(false);
       fetchLivrisons();

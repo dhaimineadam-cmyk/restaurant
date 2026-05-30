@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-const configuredBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const configuredBaseUrl = process.env.REACT_APP_API_URL || 'https://restaurant-qom1.onrender.com';
 const baseURL = configuredBaseUrl.endsWith('/api')
     ? configuredBaseUrl
     : `${configuredBaseUrl.replace(/\/$/, '')}/api`;
+const storageBase = configuredBaseUrl.replace(/\/api$/, '').replace(/\/$/, '');
 
 const api = axios.create({
     baseURL,
@@ -46,6 +47,11 @@ export const getCurrentRestaurantId = () => {
     } catch (error) {
         return null;
     }
+};
+
+export const storageUrl = (path = '') => {
+    const cleaned = path?.toString().replace(/^\/+/, '');
+    return `${storageBase}/storage/${cleaned}`;
 };
 
 export const addRestaurantParam = (params = {}) => {

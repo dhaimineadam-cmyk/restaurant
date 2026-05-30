@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   FaHome, 
   FaSignInAlt, 
@@ -34,6 +34,12 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setIsMenuOpen(false);
+  };
 
   useEffect(() => {
     // Vérifier si l'utilisateur est connecté au chargement
@@ -49,7 +55,16 @@ export default function Navbar() {
       });
   }, []);
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const handleCategoryClick = (categoryId) => {
     navigate(`/menu?category=${categoryId}`);
@@ -62,6 +77,7 @@ export default function Navbar() {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     setIsLoggedIn(false);
+    closeMobileMenu();
     navigate('/');
   };
 
@@ -157,16 +173,16 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden" role="dialog" aria-modal="true">
-          <div className="fixed inset-0 z-10 bg-gray-500 bg-opacity-25 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-20 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+          <div className="fixed inset-0 z-10 bg-gray-500 bg-opacity-25 backdrop-blur-sm" onClick={closeMobileMenu} />
+          <div className="fixed inset-y-0 right-0 z-20 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 pointer-events-auto">
             <div className="flex items-center justify-between">
-              <NavLink to="/" className={linkClass} end>
+              <NavLink to="/" className={linkClass} end onClick={closeMobileMenu}>
                 <FaHamburger className="h-8 w-auto text-xl" />
                 <span className="sr-only">Accueil</span>
               </NavLink>
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
                 className="-m-2.5 rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
               >
                 <span className="sr-only">Close menu</span>
@@ -182,7 +198,7 @@ export default function Navbar() {
                     <NavLink
                       key={to}
                       to={to}
-                      className={({ isActive }) => `${linkClass({ isActive })} ${highlight ? 'px-3 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-600' : ''}`}
+                      className={({ isActive }) => `${linkClass({ isActive })} w-full ${highlight ? 'px-3 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-600' : ''}`}
                       onClick={closeMobileMenu}
                     >
                       {icon} {label}

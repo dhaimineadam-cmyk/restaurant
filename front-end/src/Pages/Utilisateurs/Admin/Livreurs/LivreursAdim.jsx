@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../../../Api/api';
 import { FaEye, FaSpinner, FaSearch, FaFilter, FaArrowLeft, FaEdit, FaTrash, FaPlus, FaCheck, FaTimes, FaFileDownload, FaPrint } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
@@ -45,7 +45,7 @@ const LivreursAdmin = () => {
   const fetchLivreurs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('https://restaurant-qom1.onrender.com/api/livreurs');
+      const response = await api.get('/livreurs');
       setLivreurs(response.data);
     } catch (error) {
       console.error('Error fetching livreurs:', error);
@@ -133,7 +133,7 @@ const LivreursAdmin = () => {
         password_confirmation: formData.password_confirmation
       };
 
-      await axios.post('https://restaurant-qom1.onrender.com/api/livreurs', dataToSend);
+      await api.post('/livreurs', dataToSend);
       setShowAddModal(false);
       fetchLivreurs();
       resetForm();
@@ -192,7 +192,7 @@ const LivreursAdmin = () => {
         password_confirmation: formData.password_confirmation
       };
 
-      await axios.put(`https://restaurant-qom1.onrender.com/api/livreurs/${selectedLivreur.id_livreur}`, dataToSend);
+      await api.put(`/livreurs/${selectedLivreur.id_livreur}`, dataToSend);
       setShowEditModal(false);
       fetchLivreurs();
       resetForm();
@@ -225,7 +225,7 @@ const LivreursAdmin = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`https://restaurant-qom1.onrender.com/api/livreurs/${livreurToDelete.id_livreur}`);
+      await api.delete(`/livreurs/${livreurToDelete.id_livreur}`);
       setShowDeleteConfirmation(false);
       setLivreurToDelete(null);
       fetchLivreurs();
@@ -243,9 +243,7 @@ const LivreursAdmin = () => {
   const handleStatusChange = async () => {
     try {
       const newStatus = selectedLivreur.status === 'actif' ? 'inactif' : 'actif';
-      await axios.put(`https://restaurant-qom1.onrender.com/api/livreurs/${selectedLivreur.id_livreur}`, {
-        status: newStatus
-      });
+      await api.put(`/livreurs/${selectedLivreur.id_livreur}`, { status: newStatus });
       setShowStatusModal(false);
       fetchLivreurs();
     } catch (error) {
