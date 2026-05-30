@@ -17,6 +17,10 @@ const Tables = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
 
+  const isTableAvailable = (status) => {
+    return status === 1 || status === "1" || status === true;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
@@ -127,7 +131,7 @@ const Tables = () => {
     // Filtre par statut
     if (statusFilter !== "all") {
       filtered = filtered.filter(table => {
-        return table.status === parseInt(statusFilter);
+        return statusFilter === "1" ? isTableAvailable(table.status) : !isTableAvailable(table.status);
       });
     }
     
@@ -228,6 +232,19 @@ const Tables = () => {
       setError(null);
     } catch (error) {
       setError("Erreur lors de la mise à jour de la table");
+      console.error(error);
+    }
+  };
+
+  // Mettre à jour le statut d'une table via l'endpoint dédié
+  const handleUpdateStatus = async (tableId, newStatus) => {
+    try {
+      const response = await api.put(`/tables/${tableId}/status`, { status: newStatus });
+      setTables(tables.map((table) => (table.id === tableId ? { ...table, status: newStatus } : table)));
+      setSuccess("Statut de la table mis à jour avec succès");
+      setError(null);
+    } catch (error) {
+      setError("Erreur lors de la mise à jour du statut de la table");
       console.error(error);
     }
   };
@@ -458,11 +475,11 @@ const Tables = () => {
                         </select>
                       ) : (
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          table.status === 1 
+                          isTableAvailable(table.status) 
                             ? "bg-green-100 text-green-800" 
                             : "bg-red-100 text-red-800"
                         }`}>
-                          {table.status === 1 ? "Disponible" : "Non disponible"}
+                          {isTableAvailable(table.status) ? "Disponible" : "Non disponible"}
                         </span>
                       )}
                     </td>
@@ -490,6 +507,20 @@ const Tables = () => {
                         </div>
                       ) : (
                         <div className="flex space-x-2">
+                          <button
+                            className={`inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md text-white ${
+                              isTableAvailable(table.status) 
+                                ? "bg-green-600 hover:bg-green-700" 
+                                : "bg-orange-600 hover:bg-orange-700"
+                            }`}
+                            onClick={() => handleUpdateStatus(table.id, isTableAvailable(table.status) ? 0 : 1)}
+                            title={isTableAvailable(table.status) ? "Marquer comme non disponible" : "Marquer comme disponible"}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 2.526a6 6 0 008.367 8.368z" clipRule="evenodd" />
+                            </svg>
+                            {table.status === 1 ? "Disponible" : "Non disp."}
+                          </button>
                           <button
                             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-md"
                             onClick={() => handleEdit(table)}

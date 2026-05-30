@@ -875,6 +875,10 @@ export default function Reservation() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [menus, setMenus] = useState({ entrees: [], plats: [], desserts: [] });
   const [selectedMenu, setSelectedMenu] = useState({ entree: "", plat: "", dessert: "" });
+
+  const isTableAvailable = (status) => {
+    return status === 1 || status === "1" || status === true;
+  };
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [step, setStep] = useState(1);
@@ -1182,28 +1186,37 @@ export default function Reservation() {
               {/* Sélection de la table */}
               <div className="mb-6">
                 <label className="block text-gray-700 font-medium mb-2">Choisissez une table</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {tables.map(table => (
-                    <button
-                      key={table.id}
-                      type="button"
-                      disabled={table.status !== 1}
-                      onClick={() => setSelectedTable(table.id)}
-                      className={`
-                        flex flex-col items-center justify-center p-4 rounded-lg shadow
-                        border-2 transition-all
-                        ${selectedTable === table.id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50"}
-                        ${table.status === 1 ? "hover:border-blue-400 cursor-pointer" : "opacity-50 cursor-not-allowed"}
-                      `}
-                    >
-                      <FaTable className={`mb-2 ${table.status === 1 ? "text-green-500" : "text-gray-400"}`} size={28} />
-                      <span className="font-bold">{table.name}</span>
-                      <span className={`text-xs ${table.status === 1 ? "text-green-600" : "text-gray-400"}`}>
-                        {table.status === 1 ? "Disponible" : "Indisponible"}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                {tables.length === 0 ? (
+                  <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
+                    Aucune table trouvée pour le moment.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {tables.map(table => {
+                      const available = isTableAvailable(table.status);
+                      return (
+                        <button
+                          key={table.id}
+                          type="button"
+                          disabled={!available}
+                          onClick={() => available && setSelectedTable(table.id)}
+                          className={`
+                            flex flex-col items-center justify-center p-4 rounded-lg shadow
+                            border-2 transition-all
+                            ${selectedTable === table.id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50"}
+                            ${available ? "hover:border-blue-400 cursor-pointer" : "opacity-50 cursor-not-allowed"}
+                          `}
+                        >
+                          <FaTable className={`mb-2 ${available ? "text-green-500" : "text-gray-400"}`} size={28} />
+                          <span className="font-bold">{table.name}</span>
+                          <span className={`text-xs ${available ? "text-green-600" : "text-gray-400"}`}>
+                            {available ? "Disponible" : "Indisponible"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               {/* Suivant */}
               <div className="flex justify-end">

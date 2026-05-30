@@ -134,16 +134,21 @@ class TableController extends Controller
      
     
     public function updateStatus(Request $request, $id)
-{
-    try {
-        $table = Table::findOrFail($id); // Récupère la table par ID
-        $table->status = $request->input('status'); // Met à jour le statut (par exemple 'disponible')
-        $table->save(); // Sauvegarde la modification
-        return response()->json(['message' => 'Statut mis à jour avec succès'], 200);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+    {
+        $validated = $request->validate([
+            'status' => 'required|boolean',
+        ]);
+
+        try {
+            $table = Table::findOrFail($id);
+            $table->status = $validated['status'];
+            $table->save();
+
+            return response()->json($table, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-}
 
 
 }
