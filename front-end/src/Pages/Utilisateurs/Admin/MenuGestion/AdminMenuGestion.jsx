@@ -85,11 +85,30 @@ const AdminMenuGestion = () => {
     try {
       setLoading(true);
       const formData = new FormData();
-      Object.keys(restaurantForm).forEach((key) => {
-        if (restaurantForm[key] !== null && restaurantForm[key] !== "") {
-          formData.append(key, restaurantForm[key]);
-        }
-      });
+
+      // Champs texte
+      if (restaurantForm.nom) formData.append("nom", restaurantForm.nom);
+      if (restaurantForm.slug) formData.append("slug", restaurantForm.slug);
+      if (restaurantForm.description) formData.append("description", restaurantForm.description);
+      if (restaurantForm.type_cuisine) formData.append("type_cuisine", restaurantForm.type_cuisine);
+      if (restaurantForm.adresse) formData.append("adresse", restaurantForm.adresse);
+      if (restaurantForm.ville) formData.append("ville", restaurantForm.ville);
+      if (restaurantForm.telephone) formData.append("telephone", restaurantForm.telephone);
+      if (restaurantForm.email) formData.append("email", restaurantForm.email);
+      if (restaurantForm.latitude) formData.append("latitude", parseFloat(restaurantForm.latitude));
+      if (restaurantForm.longitude) formData.append("longitude", parseFloat(restaurantForm.longitude));
+      if (restaurantForm.minimum_order_price) formData.append("minimum_order_price", parseFloat(restaurantForm.minimum_order_price));
+
+      // Booléens → 1 ou 0
+      formData.append("delivery_available", restaurantForm.delivery_available ? 1 : 0);
+      formData.append("is_halal", restaurantForm.is_halal ? 1 : 0);
+      formData.append("is_vegetarian_friendly", restaurantForm.is_vegetarian_friendly ? 1 : 0);
+      formData.append("status", "active");
+      formData.append("abonnement_plan", "basic");
+
+      // Fichiers — seulement si sélectionnés
+      if (restaurantForm.logo instanceof File) formData.append("logo", restaurantForm.logo);
+      if (restaurantForm.banner instanceof File) formData.append("banner", restaurantForm.banner);
 
       const token = localStorage.getItem("token");
       await api.post("/restaurants", formData, {
