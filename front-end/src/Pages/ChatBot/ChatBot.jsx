@@ -4,17 +4,7 @@ import { FaPaperPlane, FaRegLightbulb, FaTimes } from 'react-icons/fa';
 import { GiChefToque } from 'react-icons/gi';
 import api from '../../Api/api';
 
-// Helper to read Anthropic API key from env or localStorage
-const getAnthropicKey = () => {
-  return (
-    process.env.REACT_APP_ANTHROPIC_API_KEY ||
-    window?.localStorage?.getItem('ANTHROPIC_API_KEY') ||
-    window?.localStorage?.getItem('anthropic_api_key') ||
-    null
-  );
-};
-
-// Build a concise context string for Claude using menus and restaurants
+// Build a concise context string for Gemini using menus and restaurants
 const buildSystemContext = (menuCategories = [], restaurants = []) => {
   const menus = (menuCategories || [])
     .flatMap((c) => (c.menu || c.menus || []).slice(0, 6).map((m) => ({
@@ -36,41 +26,36 @@ const buildSystemContext = (menuCategories = [], restaurants = []) => {
   )}\nRestaurants: ${JSON.stringify(rests)}\nRéponds en français de façon naturelle, concise et utile. Si la requête nécessite une redirection vers une page, retourne la chaîne SPECIAL_NAV:<route> dans ta réponse (ex: SPECIAL_NAV:/user/client/commande) et n'ajoute pas d'autres explications. Si l'utilisateur demande des informations qui ne figurent pas dans les données, donne une réponse générale utile et propose de rediriger vers la page du menu ou liste des restaurants.`;
 };
 
-// Call Anthropic Claude API
-const callClaude = async ({ userInput, menuCategories, restaurants }) => {
-  const key = getAnthropicKey();
-  if (!key) throw new Error('Anthropic API key not configured');
+// Call Gemini API
+const callGemini = async (userMessage, context) => {
+  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  if (!apiKey) return null;
 
-  const systemPrompt = buildSystemContext(menuCategories, restaurants);
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `${context}\n\nQuestion du client: ${userMessage}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        }
+      })
+    }
+  );
 
-  const payload = {
-    model: 'claude-sonnet-4-20250514',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userInput },
-    ],
-    max_tokens_to_sample: 800,
-  };
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`Claude API error ${res.status}: ${txt}`);
-  }
-
-  const data = await res.json();
-  // Anthropic responds with an array of messages — pick assistant reply
-  const assistantMsg = (data?.messages || []).find((m) => m.role === 'assistant') || data?.message || data?.completion;
-  const content = assistantMsg?.content || assistantMsg || '';
-  return String(content).trim();
+  const data = await response.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
 };
 
 const normalizeText = (text) =>
@@ -319,18 +304,17 @@ const ChatBot = () => {
     }
 
     try {
-      const claudeResp = await callClaude({ userInput: text, menuCategories, restaurants });
-      // Handle special navigation token if returned by Claude
-      if (typeof claudeResp === 'string' && claudeResp.startsWith('SPECIAL_NAV:')) {
-        const route = claudeResp.replace('SPECIAL_NAV:', '').trim();
+      const geminiResp = await callGemini(text, buildSystemContext(menuCategories, restaurants));
+      if (typeof geminiResp === 'string' && geminiResp.startsWith('SPECIAL_NAV:')) {
+        const route = geminiResp.replace('SPECIAL_NAV:', '').trim();
         addMessage({ role: 'bot', text: `Je vous redirige vers ${route}` });
         handleNavigation(route);
       } else {
-        addMessage({ role: 'bot', text: claudeResp || "Désolé, je n'ai pas de réponse pour le moment." });
+        addMessage({ role: 'bot', text: geminiResp || "Désolé, je n'ai pas de réponse pour le moment." });
         setSuggestions(defaultSuggestions);
       }
     } catch (err) {
-      console.error('Claude error:', err);
+      console.error('Gemini error:', err);
       addMessage({
         role: 'bot',
         text: "Je n’ai pas compris votre demande. Essayez : \"Je veux commander\", \"Réserver une table\" ou \"Montre-moi le menu\".",
