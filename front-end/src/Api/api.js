@@ -49,9 +49,11 @@ export const getCurrentRestaurantId = () => {
     }
 };
 
-export const storageUrl = (path = '') => {
+export const storageUrl = (path) => {
+    if (!path) return '/placeholder.jpg';
+    if (typeof path === 'string' && path.startsWith('http')) return path; // URL Cloudinary directe
     const cleaned = path?.toString().replace(/^\/+/, '');
-    return `${storageBase}/storage/${cleaned}`;
+    return `${api.defaults.baseURL.replace('/api', '')}/storage/${cleaned}`;
 };
 
 export const addRestaurantParam = (params = {}) => {
