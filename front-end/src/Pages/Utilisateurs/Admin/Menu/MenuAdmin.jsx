@@ -593,7 +593,7 @@ const Menu2 = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {editMenu.image && (
                                                             <img
-                                                                src={editMenu.image?.startsWith('http') ? editMenu.image : `${storageBaseUrl}/storage/${editMenu.image}`}
+                                                                src={typeof editMenu.image === 'string' && editMenu.image.startsWith('http') ? editMenu.image : `${storageBaseUrl}/storage/${editMenu.image}`}
                                                                 alt={editMenu.title}
                                                                 className="h-10 w-10 rounded-full object-cover"
                                                             />
@@ -645,7 +645,7 @@ const Menu2 = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {menu.image && (
                                                             <img
-                                                                src={menu.image?.startsWith('http') ? menu.image : `${storageBaseUrl}/storage/${menu.image}`}
+                                                                src={typeof menu.image === 'string' && menu.image.startsWith('http') ? menu.image : `${storageBaseUrl}/storage/${menu.image}`}
                                                                 alt={menu.title}
                                                                 className="h-10 w-10 rounded-full object-cover"
                                                             />
