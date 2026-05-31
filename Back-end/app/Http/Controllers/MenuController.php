@@ -9,37 +9,48 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use PDOException;
-use Cloudinary\Cloudinary;
-use Cloudinary\Configuration\Configuration;
  
 class MenuController extends Controller
 {
     private function uploadToCloudinary($file)
     {
-        $cloudinary = new Cloudinary(
-            Configuration::instance([
-                'cloud' => [
-                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                    'api_key'    => env('CLOUDINARY_API_KEY'),
-                    'api_secret' => env('CLOUDINARY_API_SECRET'),
-                ],
-                'url' => [
-                    'secure' => true,
-                ],
-            ])
-        );
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey    = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
  
-        $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
-            'folder' => 'srms/menus',
+        $timestamp = time();
+        $folder    = 'srms/menus';
+        $params    = "folder={$folder}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($params);
+ 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file'      => new \CURLFile($file->getRealPath(), $file->getMimeType(), $file->getClientOriginalName()),
+            'api_key'   => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+            'folder'    => $folder,
         ]);
  
-        return $result['secure_url'];
+        $response = curl_exec($ch);
+        curl_close($ch);
+ 
+        $data = json_decode($response, true);
+ 
+        if (isset($data['secure_url'])) {
+            return $data['secure_url'];
+        }
+ 
+        throw new Exception('Cloudinary upload failed: ' . json_encode($data));
     }
  
     public function index(Request $request)
     {
         try {
-            $categoryId = $request->query('category_id');
+            $categoryId   = $request->query('category_id');
             $restaurantId = $request->query('restaurant_id');
  
             $perPage = (int) $request->query('per_page', 7);
@@ -55,7 +66,7 @@ class MenuController extends Controller
                 ->get();
  
             return response()->json([
-                'menus' => $menus,
+                'menus'      => $menus,
                 'categories' => $categories,
             ]);
         } catch (PDOException | Exception $e) {
@@ -80,7 +91,7 @@ class MenuController extends Controller
     public function index2(Request $request)
     {
         try {
-            $categoryId = $request->query('category_id');
+            $categoryId   = $request->query('category_id');
             $restaurantId = $request->query('restaurant_id');
  
             $menus = Menu::query()
@@ -93,7 +104,7 @@ class MenuController extends Controller
                 ->get();
  
             return response()->json([
-                'menus' => $menus,
+                'menus'      => $menus,
                 'categories' => $categories,
             ]);
         } catch (PDOException | Exception $e) {
@@ -105,18 +116,18 @@ class MenuController extends Controller
     {
         try {
             $validated = $request->validate([
-                'title' => 'required|string|unique:menus,title',
-                'slug' => 'required|string',
-                'description' => 'required|string',
-                'price' => 'required|numeric',
-                'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
-                'category_id' => 'required|exists:categories,id',
-                'restaurant_id' => 'nullable|exists:restaurants,id',
-                'is_available' => 'nullable|boolean',
-                'speciality_tags' => 'nullable|array',
+                'title'          => 'required|string|unique:menus,title',
+                'slug'           => 'required|string',
+                'description'    => 'required|string',
+                'price'          => 'required|numeric',
+                'image'          => 'required|image|mimes:jpg,png,jpeg|max:2048',
+                'category_id'    => 'required|exists:categories,id',
+                'restaurant_id'  => 'nullable|exists:restaurants,id',
+                'is_available'   => 'nullable|boolean',
+                'speciality_tags'=> 'nullable|array',
             ]);
  
-            // Upload image vers Cloudinary
+            // Upload image vers Cloudinary via cURL
             $validated['image'] = $this->uploadToCloudinary($request->file('image'));
  
             Menu::create($validated);
@@ -143,15 +154,15 @@ class MenuController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'title' => 'required|string|unique:menus,title,' . $id,
-                'slug' => 'required|string',
-                'description' => 'required|string',
-                'price' => 'required|numeric',
-                'category_id' => 'required|exists:categories,id',
-                'restaurant_id' => 'nullable|exists:restaurants,id',
-                'is_available' => 'nullable|boolean',
-                'speciality_tags' => 'nullable|array',
-                'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+                'title'          => 'required|string|unique:menus,title,' . $id,
+                'slug'           => 'required|string',
+                'description'    => 'required|string',
+                'price'          => 'required|numeric',
+                'category_id'    => 'required|exists:categories,id',
+                'restaurant_id'  => 'nullable|exists:restaurants,id',
+                'is_available'   => 'nullable|boolean',
+                'speciality_tags'=> 'nullable|array',
+                'image'          => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
             ]);
  
             $menu = Menu::find($id);
@@ -159,17 +170,16 @@ class MenuController extends Controller
                 return response()->json(['error' => 'Menu non trouve'], 404);
             }
  
-            $menu->title = $validatedData['title'];
-            $menu->slug = $validatedData['slug'];
+            $menu->title       = $validatedData['title'];
+            $menu->slug        = $validatedData['slug'];
             $menu->description = $validatedData['description'];
-            $menu->price = $validatedData['price'];
+            $menu->price       = $validatedData['price'];
             $menu->category_id = $validatedData['category_id'];
-            $menu->restaurant_id = $validatedData['restaurant_id'] ?? $menu->restaurant_id;
-            $menu->is_available = $validatedData['is_available'] ?? $menu->is_available;
+            $menu->restaurant_id   = $validatedData['restaurant_id'] ?? $menu->restaurant_id;
+            $menu->is_available    = $validatedData['is_available'] ?? $menu->is_available;
             $menu->speciality_tags = $validatedData['speciality_tags'] ?? $menu->speciality_tags;
  
             if ($request->hasFile('image')) {
-                // Upload nouvelle image vers Cloudinary
                 $menu->image = $this->uploadToCloudinary($request->file('image'));
             }
  
