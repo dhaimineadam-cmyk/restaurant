@@ -155,9 +155,11 @@ export default function ChatBot() {
   const fetchMenuCategories = async () => {
     try {
       const response = await api.get('/menu/category');
-      setMenuCategories(response.data);
+      const data = response.data;
+      setMenuCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching menu categories:', error);
+      setMenuCategories([]);
     }
   };
 
@@ -288,7 +290,7 @@ export default function ChatBot() {
               options = menuCategories.map(cat => cat.title);
               options.push('Retour au menu principal');
             } else {
-              botResponse = "Je ne comprends pas votre demande. Voici ce que je peux faire pour vous :";
+              botResponse = "Désolé, je n'ai pas compris votre demande. Voici ce que je peux faire pour vous :";
               options = ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact'];
             }
         }
