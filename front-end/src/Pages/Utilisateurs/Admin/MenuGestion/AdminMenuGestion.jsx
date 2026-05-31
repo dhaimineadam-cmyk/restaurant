@@ -154,9 +154,13 @@ const AdminMenuGestion = () => {
     try {
       setLoading(true);
       const formData = new FormData();
-      Object.keys(menuForm).forEach((key) => {
-        if (menuForm[key] !== null && menuForm[key] !== "") {
-          formData.append(key, menuForm[key]);
+      Object.entries(menuForm).forEach(([key, value]) => {
+        if (value !== null && value !== "") {
+          if (key === 'is_available') {
+            formData.append(key, value ? 1 : 0);
+          } else {
+            formData.append(key, value);
+          }
         }
       });
 
