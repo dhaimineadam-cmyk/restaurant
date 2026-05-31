@@ -106,9 +106,9 @@ const AdminMenuGestion = () => {
       formData.append("status", "active");
       formData.append("abonnement_plan", "basic");
 
-      // Fichiers — seulement si sélectionnés
-      if (restaurantForm.logo instanceof File) formData.append("logo", restaurantForm.logo);
-      if (restaurantForm.banner instanceof File) formData.append("banner", restaurantForm.banner);
+      // Logo/banner URL directes
+      if (restaurantForm.logo) formData.append("logo", restaurantForm.logo);
+      if (restaurantForm.banner) formData.append("banner", restaurantForm.banner);
 
       const token = localStorage.getItem("token");
       await api.post("/restaurants", formData, {
@@ -412,26 +412,26 @@ const AdminMenuGestion = () => {
               Végétarien friendly
             </label>
             <input
-              type="file"
-              placeholder="Logo"
+              type="text"
+              placeholder="Logo URL"
+              value={restaurantForm.logo || ""}
               onChange={(e) =>
                 setRestaurantForm({
                   ...restaurantForm,
-                  logo: e.target.files?.[0] || null,
+                  logo: e.target.value,
                 })
               }
-              accept="image/*"
             />
             <input
-              type="file"
-              placeholder="Bannière"
+              type="text"
+              placeholder="Bannière URL"
+              value={restaurantForm.banner || ""}
               onChange={(e) =>
                 setRestaurantForm({
                   ...restaurantForm,
-                  banner: e.target.files?.[0] || null,
+                  banner: e.target.value,
                 })
               }
-              accept="image/*"
             />
             <button type="submit" disabled={loading}>
               {loading ? "Ajout en cours..." : "Ajouter le Restaurant"}
