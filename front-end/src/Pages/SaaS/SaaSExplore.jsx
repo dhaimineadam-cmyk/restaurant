@@ -73,6 +73,23 @@ export default function SaaSExplore() {
                 const foundRestaurants = searchData?.restaurants?.data || [];
 
                 const restaurantMap = {};
+                
+                // Si aucun résultat, cherche directement les restaurants
+                if (foundMenus.length === 0 && foundRestaurants.length === 0) {
+                    const { data: restData } = await api.get("/restaurants", { 
+                        params: { per_page: 20 } 
+                    });
+                    const allRestaurants = restData?.data || [];
+                    const filtered = allRestaurants.filter(r => 
+                        r.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        r.type_cuisine?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        r.ville?.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                    filtered.forEach(r => {
+                        restaurantMap[r.id] = { ...r, matchedMenus: [] };
+                    });
+                }
+
                 foundRestaurants.forEach((r) => {
                     restaurantMap[r.id] = { ...r, matchedMenus: [] };
                 });
