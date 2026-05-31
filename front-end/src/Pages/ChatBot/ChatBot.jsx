@@ -4,6 +4,75 @@ import { FaPaperPlane, FaRegLightbulb, FaTimes } from 'react-icons/fa';
 import { GiChefToque } from 'react-icons/gi';
 import api from '../../Api/api';
 
+// Helper to read Anthropic API key from env or localStorage
+const getAnthropicKey = () => {
+  return (
+    process.env.REACT_APP_ANTHROPIC_API_KEY ||
+    window?.localStorage?.getItem('ANTHROPIC_API_KEY') ||
+    window?.localStorage?.getItem('anthropic_api_key') ||
+    null
+  );
+};
+
+// Build a concise context string for Claude using menus and restaurants
+const buildSystemContext = (menuCategories = [], restaurants = []) => {
+  const menus = (menuCategories || [])
+    .flatMap((c) => (c.menu || c.menus || []).slice(0, 6).map((m) => ({
+      title: m.nom || m.name || m.title,
+      price: m.price,
+      category: c.nom || c.name || c.title,
+    })))
+    .slice(0, 30);
+
+  const rests = (restaurants || []).slice(0, 20).map((r) => ({
+    id: r.id,
+    name: r.nom || r.name,
+    city: r.ville,
+    cuisine: r.type_cuisine,
+  }));
+
+  return `Contexte: tu es un assistant pour une application de restaurants. Données disponibles (extrait):\nMenus: ${JSON.stringify(
+    menus
+  )}\nRestaurants: ${JSON.stringify(rests)}\nRéponds en français de façon naturelle, concise et utile. Si la requête nécessite une redirection vers une page, retourne la chaîne SPECIAL_NAV:<route> dans ta réponse (ex: SPECIAL_NAV:/user/client/commande) et n'ajoute pas d'autres explications. Si l'utilisateur demande des informations qui ne figurent pas dans les données, donne une réponse générale utile et propose de rediriger vers la page du menu ou liste des restaurants.`;
+};
+
+// Call Anthropic Claude API
+const callClaude = async ({ userInput, menuCategories, restaurants }) => {
+  const key = getAnthropicKey();
+  if (!key) throw new Error('Anthropic API key not configured');
+
+  const systemPrompt = buildSystemContext(menuCategories, restaurants);
+
+  const payload = {
+    model: 'claude-sonnet-4-20250514',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userInput },
+    ],
+    max_tokens_to_sample: 800,
+  };
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Claude API error ${res.status}: ${txt}`);
+  }
+
+  const data = await res.json();
+  // Anthropic responds with an array of messages — pick assistant reply
+  const assistantMsg = (data?.messages || []).find((m) => m.role === 'assistant') || data?.message || data?.completion;
+  const content = assistantMsg?.content || assistantMsg || '';
+  return String(content).trim();
+};
+
 const normalizeText = (text) =>
   String(text)
     .toLowerCase()
@@ -249,12 +318,27 @@ const ChatBot = () => {
       return;
     }
 
-    addMessage({
-      role: 'bot',
-      text: 'Je n’ai pas compris votre demande. Essayez : "Je veux commander", "Réserver une table" ou "Montre-moi le menu".',
-    });
-    setSuggestions(defaultSuggestions);
-    setIsTyping(false);
+    try {
+      const claudeResp = await callClaude({ userInput: text, menuCategories, restaurants });
+      // Handle special navigation token if returned by Claude
+      if (typeof claudeResp === 'string' && claudeResp.startsWith('SPECIAL_NAV:')) {
+        const route = claudeResp.replace('SPECIAL_NAV:', '').trim();
+        addMessage({ role: 'bot', text: `Je vous redirige vers ${route}` });
+        handleNavigation(route);
+      } else {
+        addMessage({ role: 'bot', text: claudeResp || "Désolé, je n'ai pas de réponse pour le moment." });
+        setSuggestions(defaultSuggestions);
+      }
+    } catch (err) {
+      console.error('Claude error:', err);
+      addMessage({
+        role: 'bot',
+        text: "Je n’ai pas compris votre demande. Essayez : \"Je veux commander\", \"Réserver une table\" ou \"Montre-moi le menu\".",
+      });
+      setSuggestions(defaultSuggestions);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleSubmit = async (event) => {
