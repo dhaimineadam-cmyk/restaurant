@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use PDOException;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
  
 class MenuController extends Controller
 {
@@ -93,11 +92,8 @@ class MenuController extends Controller
                 'speciality_tags' => 'nullable|array',
             ]);
  
-            // Upload image vers Cloudinary
-            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                'folder' => 'srms/menus',
-            ]);
-            $validated['image'] = $uploadedFile->getSecurePath();
+            // Upload image en stockage local
+            $validated['image'] = $request->file('image')->store('ImageMenus', 'public');
  
             Menu::create($validated);
  
@@ -149,11 +145,7 @@ class MenuController extends Controller
             $menu->speciality_tags = $validatedData['speciality_tags'] ?? $menu->speciality_tags;
  
             if ($request->hasFile('image')) {
-                // Upload nouvelle image vers Cloudinary
-                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'srms/menus',
-                ]);
-                $menu->image = $uploadedFile->getSecurePath();
+                $menu->image = $request->file('image')->store('ImageMenus', 'public');
             }
  
             $menu->save();
@@ -177,3 +169,4 @@ class MenuController extends Controller
         }
     }
 }
+ 
