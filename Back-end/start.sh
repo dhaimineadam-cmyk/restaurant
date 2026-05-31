@@ -3,7 +3,7 @@
 cat > /var/www/html/.env << ENVFILE
 APP_NAME=SRMS
 APP_ENV=production
-APP_DEBUG=false
+APP_DEBUG=true
 APP_URL=${APP_URL}
 APP_KEY=${APP_KEY}
 
@@ -21,19 +21,22 @@ SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS}
 SESSION_DOMAIN=${SESSION_DOMAIN}
 SESSION_DRIVER=cookie
 CACHE_DRIVER=file
+FILESYSTEM_DISK=public
 
 CLOUDINARY_URL=cloudinary://${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}@${CLOUDINARY_CLOUD_NAME}
 CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
 CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
 CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-FILESYSTEM_DISK=cloudinary
 ENVFILE
 
 echo "=== .env généré ===" 
 cat /var/www/html/.env
 echo "==================="
 
+cd /var/www/html
+
 php artisan config:clear
+php artisan storage:link --force
 php artisan migrate --force
 php artisan db:seed --class=AdminUserSeeder --force
 php artisan serve --host=0.0.0.0 --port=8000
