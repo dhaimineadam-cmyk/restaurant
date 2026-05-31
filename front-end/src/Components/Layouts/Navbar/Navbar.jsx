@@ -21,7 +21,6 @@ const links = [
   { to: '/', label: 'Accueil', icon: <FaHome /> },
   { to: '/local', label: 'Localisation', icon: <FaMapMarkedAlt /> },
   { to: '/menu', label: 'Menu', icon: <FaUtensils /> },
-  { to: '/restaurants', label: 'Restaurants', icon: <FaStore /> },
   { to: '/restaurants/search', label: 'Recherche', icon: <FaSearch />, highlight: true },
   { to: '/about', label: 'À propos', icon: <FaInfoCircle /> },
   { to: '/feedback', label: 'Feedback', icon: <FaComments /> },
