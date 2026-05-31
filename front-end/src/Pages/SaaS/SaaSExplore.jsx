@@ -44,14 +44,30 @@ export default function SaaSExplore() {
         );
     }, []);
 
+    // Charger tous les restaurants au démarrage
+    useEffect(() => {
+        api.get("/restaurants", { params: { per_page: 50 } })
+            .then(({ data }) => {
+                const all = data?.data || [];
+                setRestaurants(all.map(r => ({ ...r, matchedMenus: [] })));
+                setAiMessage(`✨ ${all.length} restaurant(s) disponibles. Tapez pour filtrer.`);
+            })
+            .catch(err => console.error(err));
+    }, []);
+
     // Recherche les plats quand l'utilisateur tape
     useEffect(() => {
         if (searchQuery.trim().length === 0) {
-            setRestaurants([]);
+            api.get("/restaurants", { params: { per_page: 50 } })
+                .then(({ data }) => {
+                    const all = data?.data || [];
+                    setRestaurants(all.map(r => ({ ...r, matchedMenus: [] })));
+                    setAiMessage(`✨ ${all.length} restaurant(s) disponibles.`);
+                })
+                .catch(err => console.error(err));
             setSelectedRestaurant(null);
             setSelectedMenus([]);
             setShowActionMenu(false);
-            setAiMessage("👋 Bonjour! Bienvenue chez nous. Tapez le nom d'un plat pour commencer...");
             return;
         }
 
