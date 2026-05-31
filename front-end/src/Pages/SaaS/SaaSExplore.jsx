@@ -44,30 +44,14 @@ export default function SaaSExplore() {
         );
     }, []);
 
-    // Charger tous les restaurants au démarrage
-    useEffect(() => {
-        api.get("/restaurants", { params: { per_page: 50 } })
-            .then(({ data }) => {
-                const all = data?.data || [];
-                setRestaurants(all.map(r => ({ ...r, matchedMenus: [] })));
-                setAiMessage(`✨ ${all.length} restaurant(s) disponibles. Tapez pour filtrer.`);
-            })
-            .catch(err => console.error(err));
-    }, []);
-
     // Recherche les plats quand l'utilisateur tape
     useEffect(() => {
         if (searchQuery.trim().length === 0) {
-            api.get("/restaurants", { params: { per_page: 50 } })
-                .then(({ data }) => {
-                    const all = data?.data || [];
-                    setRestaurants(all.map(r => ({ ...r, matchedMenus: [] })));
-                    setAiMessage(`✨ ${all.length} restaurant(s) disponibles.`);
-                })
-                .catch(err => console.error(err));
+            setRestaurants([]);
             setSelectedRestaurant(null);
             setSelectedMenus([]);
             setShowActionMenu(false);
+            setAiMessage("👋 Bonjour! Bienvenue chez nous. Tapez le nom d'un plat pour commencer...");
             return;
         }
 
@@ -218,7 +202,7 @@ export default function SaaSExplore() {
                                 }}
                             >
                                 <div className="saas-menu-image">
-                                    <img src={r.banner || r.logo || "/gere.jpg"} alt={r.nom} />
+                                    <img src={r.banner || r.logo || `https://source.unsplash.com/400x300/?restaurant,food&sig=${r.id}`} alt={r.nom} />
                                 </div>
                                 <div className="saas-menu-info">
                                     <h3>{r.nom}</h3>
