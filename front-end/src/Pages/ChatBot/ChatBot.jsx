@@ -1,400 +1,388 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FaPaperPlane, FaRegLightbulb, FaTimes } from 'react-icons/fa';
+import { GiChefToque } from 'react-icons/gi';
 import api from '../../Api/api';
-import { useNavigate } from 'react-router-dom';
-import { FaRobot, FaPaperPlane } from 'react-icons/fa';
 
-export default function ChatBot() {
-  const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { 
-      text: "Bonjour ! Je suis FoodyChat, votre assistant virtuel du restaurant Foody. Je suis là pour vous aider à découvrir notre menu, faire des réservations ou répondre à vos questions. Comment puis-je vous aider aujourd'hui ?",
-      sender: 'bot',
-      options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [currentStep, setCurrentStep] = useState('initial');
-  const [isTyping, setIsTyping] = useState(false);
-  const [menuCategories, setMenuCategories] = useState([]);
-  const [clientName, setClientName] = useState('');
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
+const normalizeText = (text) =>
+  String(text)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // Restaurant contact information
-  const restaurantInfo = {
-    name: "Foody Restaurant",
-    address: "123 Avenue de la Gastronomie, 75001 Paris",
-    phone: "+33 1 23 45 67 89",
-    email: "contact@foody-restaurant.com",
-    hours: "Lundi - Dimanche: 11h30 - 23h00"
-  };
-
-  // Greetings and responses
-  const greetings = {
-    hello: ['salut', 'bonjour', 'coucou', 'hello', 'hi', 'hey', 'slt', 'cc', 'bjr'],
-    howAreYou: ['ça va', 'comment ça va', 'comment vas-tu', 'comment allez-vous', 'ça va bien', 'cv', 'comment tu vas'],
-    thanks: ['merci', 'merci beaucoup', 'thanks', 'thank you', 'merci bien'],
-    bye: ['au revoir', 'bye', 'à bientôt', 'goodbye', 'ciao', 'bye bye'],
-    name: ['je m\'appelle', 'mon nom est', 'mon prénom est', 'je suis'],
-    botName: ['ton nom', 'comment tu t\'appelles', 'qui es-tu', 'c\'est quoi ton nom', 'tu t\'appelles comment']
-  };
-
-  const getRandomResponse = (responses) => {
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
-  const handleGreeting = (message) => {
-    const lowerMessage = message.toLowerCase();
-    
-    // Check for bot name questions
-    if (greetings.botName.some(phrase => lowerMessage.includes(phrase))) {
-      return {
-        text: "Je suis FoodyChat, l'assistant virtuel du restaurant Foody. Je suis là pour vous aider à découvrir notre menu, faire des réservations ou répondre à vos questions. Comment puis-je vous aider ?",
-        options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-      };
-    }
-
-    // Check for name introduction
-    if (greetings.name.some(phrase => lowerMessage.includes(phrase))) {
-      const name = lowerMessage.split(phrase => greetings.name.find(p => lowerMessage.includes(p)))[1]?.trim();
-      if (name) {
-        setClientName(name);
-        return {
-          text: `Enchanté ${name} ! Je suis FoodyChat, l'assistant virtuel du restaurant Foody. Je suis ravi de faire votre connaissance. Comment puis-je vous aider aujourd\'hui ?`,
-          options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-        };
-      }
-    }
-
-    // Check for simple greetings
-    if (greetings.hello.some(greeting => lowerMessage.includes(greeting))) {
-      const responses = clientName 
-        ? [
-            `Bonjour ${clientName} ! Je suis FoodyChat. Comment puis-je vous aider aujourd\'hui ?`,
-            `Salut ${clientName} ! Je suis FoodyChat, que puis-je faire pour vous ?`,
-            `Bonjour ${clientName} ! Je suis FoodyChat, je suis ravi de vous aider. Que souhaitez-vous ?`
-          ]
-        : [
-            "Bonjour ! Je suis FoodyChat. Comment puis-je vous aider aujourd'hui ?",
-            "Salut ! Je suis FoodyChat, que puis-je faire pour vous ?",
-            "Bonjour ! Je suis FoodyChat, je suis ravi de vous aider. Que souhaitez-vous ?"
-          ];
-      
-      return {
-        text: getRandomResponse(responses),
-        options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-      };
-    }
-
-    // Check for how are you
-    if (greetings.howAreYou.some(greeting => lowerMessage.includes(greeting))) {
-      const responses = clientName
-        ? [
-            `Je vais très bien ${clientName}, merci ! Et vous, comment puis-je vous aider ?`,
-            `Très bien ${clientName}, merci ! Que souhaitez-vous faire aujourd\'hui ?`,
-            `Je vais parfaitement ${clientName} ! Comment puis-je vous être utile ?`
-          ]
-        : [
-            "Je vais très bien, merci ! Et vous, comment puis-je vous aider ?",
-            "Très bien, merci ! Que souhaitez-vous faire aujourd'hui ?",
-            "Je vais parfaitement ! Comment puis-je vous être utile ?"
-          ];
-
-      return {
-        text: getRandomResponse(responses),
-        options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-      };
-    }
-
-    // Check for thanks
-    if (greetings.thanks.some(greeting => lowerMessage.includes(greeting))) {
-      const responses = clientName
-        ? [
-            `Je vous en prie ${clientName} ! Y a-t-il autre chose que je puisse faire pour vous ?`,
-            `Avec plaisir ${clientName} ! Puis-je vous aider avec autre chose ?`,
-            `De rien ${clientName} ! N'hésitez pas si vous avez d'autres questions.`
-          ]
-        : [
-            "Je vous en prie ! Y a-t-il autre chose que je puisse faire pour vous ?",
-            "Avec plaisir ! Puis-je vous aider avec autre chose ?",
-            "De rien ! N'hésitez pas si vous avez d'autres questions."
-          ];
-
-      return {
-        text: getRandomResponse(responses),
-        options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-      };
-    }
-
-    // Check for goodbye
-    if (greetings.bye.some(greeting => lowerMessage.includes(greeting))) {
-      const responses = clientName
-        ? [
-            `Au revoir ${clientName} ! N'hésitez pas à revenir si vous avez des questions.`,
-            `À bientôt ${clientName} ! Bonne journée !`,
-            `Au revoir ${clientName} ! Merci d'avoir discuté avec moi.`
-          ]
-        : [
-            "Au revoir ! N'hésitez pas à revenir si vous avez des questions.",
-            "À bientôt ! Bonne journée !",
-            "Au revoir ! Merci d'avoir discuté avec moi."
-          ];
-
-      return {
-        text: getRandomResponse(responses),
-        options: ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact']
-      };
-    }
-
-    // If no greeting is recognized, return null to handle as a regular message
+const getUserFromStorage = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
     return null;
-  };
+  }
+};
 
-  // Fetch menu categories
-  const fetchMenuCategories = async () => {
-    try {
-      const response = await api.get('/menu/category');
-      const data = response.data;
-      setMenuCategories(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching menu categories:', error);
-      setMenuCategories([]);
-    }
-  };
+const smartRoutes = {
+  commande: '/user/client/commande',
+  reservation: '/user/client/reservation',
+  avis: '/user/client/avis',
+  reclamation: '/user/client/reclamation',
+  menu: '/menu',
+  restaurants: '/restaurants',
+};
+
+const defaultSuggestions = [
+  'Voir le menu',
+  'Commander en ligne',
+  'Réserver une table',
+  'Laisser un avis',
+];
+
+const getUserRoleLabel = (user) => {
+  if (!user) return 'Invité';
+  const role = (user.role || user.type || 'client').toString().toLowerCase();
+  if (role === 'client') return 'Client';
+  if (role === 'admin') return 'Administrateur';
+  return role.charAt(0).toUpperCase() + role.slice(1);
+};
+
+const ChatBot = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      role: 'bot',
+      text: 'Bonjour ! Je suis votre assistant restaurant. Je peux vous aider à trouver un plat, réserver une table, passer une commande ou signaler un souci.',
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [suggestions, setSuggestions] = useState(defaultSuggestions);
+  const [menuCategories, setMenuCategories] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
+  const [fetchError, setFetchError] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [user, setUser] = useState(getUserFromStorage());
+  const viewportRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchMenuCategories();
-    }
-  }, [isOpen]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    setUser(getUserFromStorage());
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-    if (isOpen) {
-      inputRef.current?.focus();
-    }
-  }, [messages, isOpen]);
+    if (!open) return;
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      setInputMessage('');
+    const loadData = async () => {
+      setFetchError(null);
+      try {
+        const [categoryResponse, restaurantResponse] = await Promise.all([
+          api.get('/menu/category'),
+          api.get('/restaurants?per_page=100'),
+        ]);
+
+        setMenuCategories(Array.isArray(categoryResponse.data) ? categoryResponse.data : []);
+        setRestaurants(Array.isArray(restaurantResponse.data) ? restaurantResponse.data : []);
+      } catch (error) {
+        setFetchError("Désolé, je n'ai pas pu charger le menu complet pour l'instant. Je peux quand même répondre à vos questions.");
+      }
+    };
+
+    loadData();
+  }, [open]);
+
+  useEffect(() => {
+    if (!viewportRef.current) return;
+    viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+  }, [messages, isTyping]);
+
+  const currentPageLabel = useMemo(() => {
+    const path = location.pathname;
+    if (path.includes('/user/client/commande')) return 'Commande';
+    if (path.includes('/user/client/reservation')) return 'Réservation';
+    if (path.includes('/user/client/avis')) return 'Avis';
+    if (path.includes('/user/client/reclamation')) return 'Réclamation';
+    if (path.includes('/restaurants')) return 'Restaurants';
+    if (path.includes('/menu')) return 'Menu';
+    return 'Accueil';
+  }, [location.pathname]);
+
+  const addMessage = (message) => setMessages((prev) => [...prev, message]);
+
+  const handleNavigation = (route) => {
+    const requiresAuth = ['/user/client/commande', '/user/client/reservation', '/user/client/avis', '/user/client/reclamation'].includes(route);
+
+    if (requiresAuth && !user) {
+      addMessage({
+        role: 'bot',
+        text: "Pour accéder à cette page, connectez-vous d'abord. Je vous redirige vers la page de connexion.",
+      });
+      setTimeout(() => navigate('/login'), 400);
+      return;
     }
+
+    navigate(route);
+    addMessage({
+      role: 'bot',
+      text: `Très bien, je vous redirige vers ${route === '/menu' ? 'le menu' : 'la page demandée'}.`,
+    });
   };
 
-  const handleOptionClick = (option) => {
-    setInputMessage(option);
-    handleSendMessage({ preventDefault: () => {} }, option);
+  const findRestaurantMatches = (query) => {
+    const normalizedQuery = normalizeText(query);
+    if (!restaurants.length) return [];
+
+    return restaurants
+      .filter((restaurant) => {
+        const combined = [restaurant.nom, restaurant.type_cuisine, restaurant.ville, restaurant.description]
+          .filter(Boolean)
+          .join(' ');
+        return normalizeText(combined).includes(normalizedQuery);
+      })
+      .slice(0, 5);
   };
 
-  const simulateTyping = (callback) => {
+  const findMenuMatches = (query) => {
+    const normalizedQuery = normalizeText(query);
+    if (!menuCategories.length) return [];
+
+    return menuCategories
+      .flatMap((category) =>
+        (category.menu || category.menus || [])
+          .filter((item) => normalizeText(item.nom || item.name || '').includes(normalizedQuery))
+          .map((item) => ({ ...item, category: category.nom || category.name }))
+      )
+      .slice(0, 5);
+  };
+
+  const handleBotResponse = async (text) => {
+    const normalized = normalizeText(text);
+    const isGreeting = /(bonjour|salut|coucou|hello|bonsoir)/.test(normalized);
+    const wantsMenu = /(menu|carte|plats|dessert|entrée|boisson)/.test(normalized);
+    const wantsOrder = /(commande|commander|livraison|livrer|prendre une commande)/.test(normalized);
+    const wantsReservation = /(réserv|reservation|table|réserver)/.test(normalized);
+    const wantsReview = /(avis|commentaire|note|notation|évaluer)/.test(normalized);
+    const wantsClaim = /(réclamation|plainte|problème|signal)/.test(normalized);
+    const wantsRestaurants = /(restaurant|ville|cuisine|gastronomie)/.test(normalized);
+    const hasCuisine = /(italien|pizza|sushi|japonais|indien|burger|francais|mexicain|mediterraneen|vegan|vegetarien)/.test(normalized);
+
     setIsTyping(true);
-    setTimeout(() => {
+    await new Promise((resolve) => setTimeout(resolve, 450));
+
+    if (isGreeting) {
+      addMessage({
+        role: 'bot',
+        text: `Bonjour ${user?.nom || user?.name || ''}. Je peux vous aider avec le menu, les restaurants, les réservations et les commandes.`,
+      });
+      setSuggestions(defaultSuggestions);
       setIsTyping(false);
-      callback();
-    }, 1000);
-  };
+      return;
+    }
 
-  const formatMenuMessage = (category) => {
-    let message = `${category.title} :\n\n`;
-    category.menus.forEach(menu => {
-      message += `🍽️ ${menu.title}\n`;
-      message += `💰 Prix: ${menu.price}€\n`;
-      if (menu.description) {
-        message += `📝 ${menu.description}\n`;
+    if (wantsOrder) {
+      handleNavigation(smartRoutes.commande);
+      setIsTyping(false);
+      return;
+    }
+
+    if (wantsReservation) {
+      handleNavigation(smartRoutes.reservation);
+      setIsTyping(false);
+      return;
+    }
+
+    if (wantsReview) {
+      handleNavigation(smartRoutes.avis);
+      setIsTyping(false);
+      return;
+    }
+
+    if (wantsClaim) {
+      handleNavigation(smartRoutes.reclamation);
+      setIsTyping(false);
+      return;
+    }
+
+    if (wantsMenu) {
+      const categories = menuCategories.map((category) => category.nom || category.name).filter(Boolean);
+      addMessage({
+        role: 'bot',
+        text: categories.length
+          ? `Je connais ${categories.length} catégories. Par exemple : ${categories.slice(0, 4).join(', ')}. Je peux vous montrer le menu complet.`
+          : 'Je peux vous rediriger vers le menu pour voir nos plats.',
+      });
+      setSuggestions(['Voir le menu', 'Commander en ligne', 'Réserver une table']);
+      setIsTyping(false);
+      return;
+    }
+
+    if (wantsRestaurants || hasCuisine) {
+      const matches = findRestaurantMatches(text);
+      if (matches.length > 0) {
+        addMessage({
+          role: 'bot',
+          text: `J'ai trouvé ${matches.length} restaurant(s) correspondant à votre recherche : ${matches
+            .map((rest) => rest.nom || rest.name)
+            .join(', ')}. Voulez-vous voir les restaurants ou consulter le menu ?`,
+        });
+        setSuggestions(['Voir les restaurants', 'Réserver une table', 'Voir le menu']);
+        setIsTyping(false);
+        return;
       }
-      message += '\n';
+      addMessage({
+        role: 'bot',
+        text: 'Je n’ai pas trouvé de restaurant précis avec ces termes. Je peux vous rediriger vers la liste complète des restaurants.',
+      });
+      handleNavigation(smartRoutes.restaurants);
+      setIsTyping(false);
+      return;
+    }
+
+    const menuMatches = findMenuMatches(text);
+    if (menuMatches.length > 0) {
+      addMessage({
+        role: 'bot',
+        text: `Voici des plats qui correspondent à votre recherche : ${menuMatches
+          .map((item) => `${item.nom || item.name} (${item.category})`)
+          .join(' ; ')}. Souhaitez-vous consulter le menu ?`,
+      });
+      setSuggestions(['Voir le menu', 'Commander en ligne']);
+      setIsTyping(false);
+      return;
+    }
+
+    addMessage({
+      role: 'bot',
+      text: 'Je n’ai pas compris votre demande. Essayez : "Je veux commander", "Réserver une table" ou "Montre-moi le menu".',
     });
-    return message;
+    setSuggestions(defaultSuggestions);
+    setIsTyping(false);
   };
 
-  const formatContactMessage = () => {
-    return `📍 Adresse : ${restaurantInfo.address}\n\n` +
-           `📞 Téléphone : ${restaurantInfo.phone}\n\n` +
-           `✉️ Email : ${restaurantInfo.email}\n\n` +
-           `⏰ Horaires : ${restaurantInfo.hours}`;
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    addMessage({ role: 'user', text: trimmed });
+    setInput('');
+    await handleBotResponse(trimmed);
   };
 
-  const handleSendMessage = (e, customMessage = null) => {
-    e.preventDefault();
-    const message = customMessage || inputMessage;
-    if (message.trim() === '') return;
+  const handleQuickAction = async (action) => {
+    if (action === 'Voir les restaurants') {
+      addMessage({ role: 'user', text: action });
+      handleNavigation(smartRoutes.restaurants);
+      return;
+    }
 
-    setMessages(prev => [...prev, { text: message, sender: 'user' }]);
-    setInputMessage('');
-
-    simulateTyping(() => {
-      let botResponse;
-      let options = [];
-
-      // Check for greetings first
-      const greetingResponse = handleGreeting(message);
-      if (greetingResponse) {
-        botResponse = greetingResponse.text;
-        options = greetingResponse.options;
-      } else {
-        switch (message.toLowerCase()) {
-          case 'voir le menu':
-            botResponse = "Voici nos catégories de plats :";
-            options = menuCategories.map(cat => cat.title);
-            options.push('Retour au menu principal');
-            setCurrentStep('menu');
-            break;
-
-          case 'contact':
-            botResponse = formatContactMessage();
-            options = ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Retour au menu principal'];
-            break;
-
-          case 'horaires d\'ouverture':
-            botResponse = `⏰ Nos horaires d'ouverture :\n\n${restaurantInfo.hours}`;
-            options = ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Contact', 'Retour au menu principal'];
-            break;
-
-          case 'faire une réservation':
-            botResponse = "Pour faire une réservation, vous devez être connecté. Voulez-vous vous connecter maintenant ?";
-            options = ['Se connecter', 'Retour au menu principal'];
-            setCurrentStep('reservation');
-            break;
-
-          case 'se connecter':
-            navigate('/login');
-            botResponse = "Redirection vers la page de connexion...";
-            options = ['Retour au menu principal'];
-            break;
-
-          case 'commander en ligne':
-            botResponse = "Pour commander en ligne, vous devez être connecté. Voulez-vous vous connecter maintenant ?";
-            options = ['Se connecter', 'Retour au menu principal'];
-            setCurrentStep('order');
-            break;
-
-          case 'retour au menu principal':
-            botResponse = "Comment puis-je vous aider ?";
-            options = ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact'];
-            setCurrentStep('initial');
-            break;
-
-          default:
-            const selectedCategory = menuCategories.find(
-              cat => cat.title.toLowerCase() === message.toLowerCase()
-            );
-
-            if (selectedCategory) {
-              botResponse = formatMenuMessage(selectedCategory);
-              options = menuCategories.map(cat => cat.title);
-              options.push('Retour au menu principal');
-            } else {
-              botResponse = "Désolé, je n'ai pas compris votre demande. Voici ce que je peux faire pour vous :";
-              options = ['Voir le menu', 'Faire une réservation', 'Commander en ligne', 'Horaires d\'ouverture', 'Contact'];
-            }
-        }
-      }
-
-      setMessages(prev => [...prev, { text: botResponse, sender: 'bot', options }]);
-    });
+    const route = smartRoutes[action.toLowerCase()] || smartRoutes.menu;
+    addMessage({ role: 'user', text: action });
+    handleNavigation(route);
   };
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
-      {/* Chat Button */}
-      <button
-        onClick={toggleChat}
-        className="group relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-      >
-        <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-        <FaRobot className="text-xl sm:text-2xl transform group-hover:rotate-12 transition-transform duration-300" />
-        <span className="absolute -top-10 sm:-top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded-lg text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-          Chat avec FoodyChat
-        </span>
-      </button>
-
-      {/* Chat Window */}
-      {isOpen && (
-        <div className="fixed bottom-16 right-4 sm:absolute sm:bottom-20 sm:right-0 w-[calc(100%-2rem)] sm:w-96 h-[calc(100vh-8rem)] sm:h-[32rem] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 sm:p-4 flex justify-between items-center">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <FaRobot className="text-lg sm:text-xl" />
-              <h3 className="font-medium text-sm sm:text-base">FoodyChat</h3>
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      {open && (
+        <div className="mb-4 w-[360px] max-w-[92vw] rounded-3xl border border-amber-200/30 bg-[#2a0a07]/95 shadow-2xl shadow-black/30 backdrop-blur-xl text-slate-100 ring-1 ring-amber-200/20">
+          <div className="flex items-center justify-between rounded-t-3xl bg-gradient-to-r from-[#5c0f10] via-[#8b1b22] to-[#b74934] px-4 py-4 text-white">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl text-amber-200">
+                <GiChefToque />
+              </div>
+              <div>
+                <div className="text-sm font-semibold">Assistante Restaurant</div>
+                <div className="text-xs text-amber-100/80">{user ? getUserRoleLabel(user) : 'Invité'} • {currentPageLabel}</div>
+              </div>
             </div>
-            <button 
-              onClick={toggleChat}
-              className="text-white hover:text-gray-200 transition-colors"
+            <button
+              onClick={() => setOpen(false)}
+              className="rounded-full bg-white/10 p-2 text-slate-100 transition hover:bg-white/20"
+              aria-label="Fermer le chatbot"
             >
-              <i className="fas fa-times text-base sm:text-lg"></i>
+              <FaTimes />
             </button>
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 p-3 sm:p-4 overflow-y-auto bg-gray-50">
-            {messages.map((message, index) => (
-              <div key={index} className="mb-3 sm:mb-4">
-                <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`rounded-2xl p-2 sm:p-3 max-w-[85%] sm:max-w-[80%] ${
-                    message.sender === 'user' 
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' 
-                      : 'bg-white text-gray-800 shadow-md'
-                  }`}>
-                    <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.text}</p>
+          <div className="min-h-[320px] max-h-[520px] overflow-hidden border-t border-white/10">
+            <div
+              ref={viewportRef}
+              className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-amber-400/40 scrollbar-track-transparent"
+            >
+              {messages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={`flex ${message.role === 'bot' ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-3xl px-4 py-3 text-sm leading-6 shadow-lg ${
+                      message.role === 'bot'
+                        ? 'bg-slate-900/95 text-slate-100'
+                        : 'bg-amber-200/95 text-slate-900'
+                    }`}
+                  >
+                    {message.text}
                   </div>
                 </div>
-                {message.options && (
-                  <div className="mt-2 flex flex-wrap gap-1 sm:gap-2">
-                    {message.options.map((option, optIndex) => (
-                      <button
-                        key={optIndex}
-                        onClick={() => handleOptionClick(option)}
-                        className="bg-blue-50 text-blue-700 px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm hover:bg-blue-100 transition-colors border border-blue-200"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {isTyping && (
-              <div className="flex justify-start mb-3 sm:mb-4">
-                <div className="bg-white text-gray-800 shadow-md rounded-2xl p-2 sm:p-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="inline-flex items-center gap-2 rounded-3xl bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-lg">
+                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-300" />
+                    <span>Je réfléchis…</span>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+              )}
+            </div>
           </div>
 
-          {/* Chat Input */}
-          <div className="border-t p-3 sm:p-4 bg-white">
-            <form onSubmit={handleSendMessage} className="flex gap-2">
+          <div className="border-t border-white/10 bg-[#210606]/90 px-4 py-4">
+            {fetchError && (
+              <div className="rounded-2xl bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                {fetchError}
+              </div>
+            )}
+            <div className="mb-3 flex flex-wrap gap-2">
+              {(suggestions.length ? suggestions : defaultSuggestions).map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => handleQuickAction(suggestion)}
+                  className="rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={handleSubmit} className="flex items-center gap-3">
               <input
-                ref={inputRef}
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Écrivez votre message..."
-                className="flex-1 border border-gray-200 rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                className="h-11 flex-1 rounded-2xl border border-white/10 bg-slate-950/80 px-4 text-sm text-slate-100 outline-none ring-1 ring-transparent transition focus:border-amber-300 focus:ring-amber-300/20"
+                placeholder="Écrivez votre question ici..."
+                aria-label="Message au chatbot"
               />
-              <button 
+              <button
                 type="submit"
-                disabled={isTyping}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 sm:px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-300 text-slate-950 transition hover:bg-amber-400"
+                aria-label="Envoyer le message"
               >
-                <FaPaperPlane className="text-sm sm:text-base" />
+                <FaPaperPlane />
               </button>
             </form>
           </div>
         </div>
       )}
+
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#8b1b22] via-[#b14933] to-[#f5a962] px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-black/25 transition hover:-translate-y-0.5 hover:shadow-black/35"
+      >
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-xl text-amber-100">
+          <FaRegLightbulb />
+        </span>
+        <span>Assistant restaurant</span>
+      </button>
     </div>
   );
-} 
+};
+
+export default ChatBot;
