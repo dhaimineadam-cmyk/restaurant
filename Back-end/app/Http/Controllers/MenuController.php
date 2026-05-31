@@ -9,9 +9,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use PDOException;
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
  
 class MenuController extends Controller
 {
+    private function uploadToCloudinary($file)
+    {
+        $cloudinary = new Cloudinary(
+            Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key'    => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ],
+                'url' => [
+                    'secure' => true,
+                ],
+            ])
+        );
+ 
+        $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+            'folder' => 'srms/menus',
+        ]);
+ 
+        return $result['secure_url'];
+    }
+ 
     public function index(Request $request)
     {
         try {
@@ -92,8 +116,8 @@ class MenuController extends Controller
                 'speciality_tags' => 'nullable|array',
             ]);
  
-            // Upload image en stockage local
-            $validated['image'] = $request->file('image')->store('ImageMenus', 'public');
+            // Upload image vers Cloudinary
+            $validated['image'] = $this->uploadToCloudinary($request->file('image'));
  
             Menu::create($validated);
  
@@ -145,7 +169,8 @@ class MenuController extends Controller
             $menu->speciality_tags = $validatedData['speciality_tags'] ?? $menu->speciality_tags;
  
             if ($request->hasFile('image')) {
-                $menu->image = $request->file('image')->store('ImageMenus', 'public');
+                // Upload nouvelle image vers Cloudinary
+                $menu->image = $this->uploadToCloudinary($request->file('image'));
             }
  
             $menu->save();
@@ -169,4 +194,3 @@ class MenuController extends Controller
         }
     }
 }
- 
