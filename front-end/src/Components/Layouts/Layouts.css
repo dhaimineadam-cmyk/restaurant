@@ -1,14 +1,12 @@
 /* Layouts.css */
 
-/* Enlever tout padding ou marge ajoutée sur body et header */
 body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
-  background-color: #f9f9f9;
+  background-color: #17120f; /* srms-ink — sombre restaurant */
 }
 
-/* La section main n'a plus besoin d'un padding-top */
 main {
-  padding-top: 0; /* Suppression de l'espace au-dessus */
+  padding-top: 0;
 }
