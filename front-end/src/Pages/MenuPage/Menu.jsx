@@ -120,7 +120,7 @@ const Menu = () => {
                       />
                       <div className="p-4 xs:p-6 flex flex-col gap-2 w-full items-center">
                         <h3 className="text-lg xs:text-xl font-semibold text-gray-800 text-center">{item.title}</h3>
-                        <span className="inline-block bg-green-100 text-green-700 font-bold rounded-full px-3 xs:px-4 py-1 text-base xs:text-lg shadow-sm mt-1 xs:mt-2">{item.price}$</span>
+                        <span className="inline-block bg-green-100 text-green-700 font-bold rounded-full px-3 xs:px-4 py-1 text-base xs:text-lg shadow-sm mt-1 xs:mt-2">{item.price} DH</span>
                       </div>
                     </div>
                   ))}
