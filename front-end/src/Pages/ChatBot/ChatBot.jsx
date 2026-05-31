@@ -282,7 +282,7 @@ const ChatBot = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {open && (
-        <div className="mb-4 w-[360px] max-w-[92vw] rounded-3xl border border-amber-200/30 bg-[#2a0a07]/95 shadow-2xl shadow-black/30 backdrop-blur-xl text-slate-100 ring-1 ring-amber-200/20">
+        <div className="mb-4 w-[320px] max-w-[90vw] rounded-3xl border border-amber-200/30 bg-[#2a0a07]/95 shadow-lg shadow-black/20 backdrop-blur-xl text-slate-100 ring-1 ring-amber-200/20">
           <div className="flex items-center justify-between rounded-t-3xl bg-gradient-to-r from-[#5c0f10] via-[#8b1b22] to-[#b74934] px-4 py-4 text-white">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl text-amber-200">
@@ -305,7 +305,7 @@ const ChatBot = () => {
           <div className="min-h-[320px] max-h-[520px] overflow-hidden border-t border-white/10">
             <div
               ref={viewportRef}
-              className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-amber-400/40 scrollbar-track-transparent"
+              className="h-[360px] max-h-[420px] flex flex-col gap-3 overflow-y-auto px-3 py-3 scrollbar-thin scrollbar-thumb-amber-400/40 scrollbar-track-transparent"
             >
               {messages.map((message, index) => (
                 <div
@@ -374,12 +374,12 @@ const ChatBot = () => {
 
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#8b1b22] via-[#b14933] to-[#f5a962] px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-black/25 transition hover:-translate-y-0.5 hover:shadow-black/35"
+        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1b22] via-[#b14933] to-[#f5a962] px-4 py-2 text-xs font-semibold text-white shadow-xl transition hover:-translate-y-0.5"
       >
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-xl text-amber-100">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-lg text-amber-100">
           <FaRegLightbulb />
         </span>
-        <span>Assistant restaurant</span>
+        <span>Assistant</span>
       </button>
     </div>
   );
