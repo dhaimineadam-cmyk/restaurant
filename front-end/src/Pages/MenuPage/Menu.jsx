@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FaUtensils } from 'react-icons/fa';
 import api, { storageUrl } from '../../Api/api';
 
@@ -8,8 +8,10 @@ const Menu = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [selectedDish, setSelectedDish] = useState(null);
   const categoryRefs = useRef({});
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   useEffect(() => {
     api.get('/menu')
       .then((response) => {
@@ -37,7 +39,13 @@ const Menu = () => {
     }
   }, [searchParams, categories]);
 
-  // Handle click on category title or button
+  useEffect(() => {
+    document.body.style.overflow = selectedDish ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedDish]);
+
   const handleCategoryClick = (categoryId) => {
     setSearchParams({ category: categoryId });
     setActiveCategory(categoryId);
@@ -45,6 +53,10 @@ const Menu = () => {
       categoryRefs.current[categoryId].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  const openDishModal = (dish) => setSelectedDish(dish);
+  const closeDishModal = () => setSelectedDish(null);
+  const handleOrder = () => navigate('/user/client/commande');
 
   if (loading) {
     return (
@@ -112,22 +124,104 @@ const Menu = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">
                   {menus.filter(menu => menu.category_id === category.id).map((item) => (
-                    <div key={item.id} className="bg-white shadow-lg xs:shadow-xl rounded-xl xs:rounded-2xl overflow-hidden hover:shadow-2xl transition-transform transform hover:scale-[1.02] animate-fade-in-up flex flex-col items-center">
-                      <img
-                        src={storageUrl(item.image)}
-                        alt={item.title}
-                        className="w-full h-36 xs:h-40 sm:h-48 object-cover"
-                      />
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => openDishModal(item)}
+                      className="group bg-white shadow-lg xs:shadow-xl rounded-xl xs:rounded-2xl overflow-hidden hover:shadow-2xl transition-transform transform hover:scale-[1.02] animate-fade-in-up flex flex-col items-center text-left"
+                    >
+                      <div className="relative w-full overflow-hidden">
+                        <img
+                          src={storageUrl(item.image)}
+                          alt={item.title}
+                          className="w-full h-36 xs:h-40 sm:h-48 object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      </div>
                       <div className="p-4 xs:p-6 flex flex-col gap-2 w-full items-center">
                         <h3 className="text-lg xs:text-xl font-semibold text-gray-800 text-center">{item.title}</h3>
                         <span className="inline-block bg-green-100 text-green-700 font-bold rounded-full px-3 xs:px-4 py-1 text-base xs:text-lg shadow-sm mt-1 xs:mt-2">{item.price} DH</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+      {selectedDish && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+            onClick={closeDishModal}
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-2xl shadow-black/60 ring-1 ring-white/10">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-0 lg:gap-0">
+              <div className="relative overflow-hidden">
+                <img
+                  src={storageUrl(selectedDish.image)}
+                  alt={selectedDish.title}
+                  className="h-80 w-full object-cover brightness-90 transition duration-500"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-6">
+                  <p className="text-sm uppercase tracking-[0.24em] text-amber-200/90">Plat du moment</p>
+                  <h2 className="mt-2 text-2xl xs:text-3xl font-bold text-white">{selectedDish.title}</h2>
+                  <p className="mt-3 inline-flex items-center rounded-full bg-amber-200/10 px-3 py-2 text-sm font-semibold text-amber-100 shadow-sm">{selectedDish.price} DH</p>
+                </div>
+              </div>
+              <div className="p-6 xs:p-8 flex flex-col justify-between gap-6 bg-slate-950">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Détails du plat</p>
+                      <h3 className="mt-2 text-xl xs:text-2xl font-semibold text-white">À propos</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={closeDishModal}
+                      className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-4 shadow-inner shadow-black/20">
+                    <p className="text-sm text-slate-400 leading-7">{selectedDish.description || 'Aucune description disponible pour ce plat.'}</p>
+                  </div>
+                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-4 shadow-inner shadow-black/20">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-lg font-semibold text-white">Ingrédients</h4>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-300 leading-7">
+                      {selectedDish.ingredients
+                        ? (Array.isArray(selectedDish.ingredients)
+                            ? selectedDish.ingredients.join(', ')
+                            : selectedDish.ingredients)
+                        : selectedDish.description
+                          ? selectedDish.description
+                          : 'Aucun ingrédient listé.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={handleOrder}
+                    className="inline-flex w-full items-center justify-center rounded-3xl bg-amber-400 px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-amber-400/20 transition hover:bg-amber-300 sm:w-auto"
+                  >
+                    Commander
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeDishModal}
+                    className="inline-flex w-full items-center justify-center rounded-3xl border border-white/10 bg-white/5 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+                  >
+                    Fermer la fenêtre
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       <style>{`
