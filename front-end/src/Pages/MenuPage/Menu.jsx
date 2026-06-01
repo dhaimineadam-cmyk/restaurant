@@ -150,19 +150,19 @@ const Menu = () => {
         </div>
       )}
       {selectedDish && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-6">
           <div
             className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
             onClick={closeDishModal}
             aria-hidden="true"
           />
           <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-2xl shadow-black/60 ring-1 ring-white/10">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-0 lg:gap-0">
-              <div className="relative overflow-hidden">
+            <div className="flex min-h-[24rem] max-h-[calc(100vh-3rem)] flex-col overflow-hidden sm:flex-row">
+              <div className="relative w-full overflow-hidden sm:w-1/2">
                 <img
                   src={storageUrl(selectedDish.image)}
                   alt={selectedDish.title}
-                  className="h-80 w-full object-cover brightness-90 transition duration-500"
+                  className="h-48 sm:h-full w-full object-cover brightness-90 transition duration-500"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-6">
                   <p className="text-sm uppercase tracking-[0.24em] text-amber-200/90">Plat du moment</p>
@@ -170,7 +170,7 @@ const Menu = () => {
                   <p className="mt-3 inline-flex items-center rounded-full bg-amber-200/10 px-3 py-2 text-sm font-semibold text-amber-100 shadow-sm">{selectedDish.price} DH</p>
                 </div>
               </div>
-              <div className="p-6 xs:p-8 flex flex-col justify-between gap-6 bg-slate-950">
+              <div className="flex w-full flex-col justify-between gap-6 overflow-y-auto bg-slate-950 p-6 xs:p-8">
                 <div className="space-y-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
