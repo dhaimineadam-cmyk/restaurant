@@ -42,10 +42,13 @@ Règles importantes:
 };
  
 const callGemini = async (userMessage, systemContext) => {
-  const apiKey = process.env.REACT_APP_GEMINI_API_KEY || window.GEMINI_KEY;
-  if (!apiKey) {
-    console.warn('REACT_APP_GEMINI_API_KEY not set');
-    return null;
+  const apiKey = process.env.REACT_APP_GEMINI_API_KEY 
+    || window.GEMINI_KEY;
+  
+  console.log('Clé utilisée:', apiKey ? 'OK' : 'MANQUANTE');
+  
+  if (!apiKey || apiKey === '%REACT_APP_GEMINI_API_KEY%') {
+    return 'Clé API manquante';
   }
  
   const response = await fetch(
