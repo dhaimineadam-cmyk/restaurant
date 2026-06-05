@@ -14,6 +14,7 @@ import {
   Table2,
   Truck,
   Users,
+  User,
   WalletCards,
 } from 'lucide-react';
 import api from '../../../../Api/api';
@@ -23,11 +24,14 @@ const navItems = [
   { to: '/user/admin', label: 'Accueil', icon: LayoutDashboard },
   { to: '/user/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
   { to: '/user/admin/orders', label: 'Commandes', icon: Receipt },
+  { to: '/user/admin/reservations', label: 'Reservations', icon: CalendarDays },
   { to: '/user/admin/tables', label: 'Tables', icon: Table2 },
   { to: '/user/admin/categories', label: 'Categories', icon: BookOpen },
   { to: '/user/admin/menus', label: 'Menus', icon: CookingPot },
   { to: '/user/admin/stock', label: 'Stocks', icon: Package },
   { to: '/user/admin/livreurs', label: 'Livreurs', icon: Truck },
+  { to: '/user/admin/feedbacks', label: 'Feedbacks', icon: MessageSquareWarning },
+  { to: '/user/admin/profile', label: 'Profil Admin', icon: User },
   { to: '/user/admin/servants', label: 'Servants', icon: Users },
 ];
 
@@ -75,6 +79,8 @@ export default function HomeAdmin() {
     { icon: Package, title: 'Stocks', description: 'Controlez fournisseurs, seuils et inventaires.', to: '/user/admin/stock', tone: 'blue' },
     { icon: Truck, title: 'Livraisons', description: 'Assignez les commandes et suivez les livreurs.', to: '/user/admin/livrisons', tone: 'green' },
     { icon: MessageSquareWarning, title: 'Relation client', description: 'Reclamations, feedbacks et avis a traiter.', to: '/user/admin/reclamations', tone: 'red' },
+    { icon: MessageSquareWarning, title: 'Feedbacks', description: 'Consultez et gerez les avis clients.', to: '/user/admin/feedbacks', tone: 'blue' },
+    { icon: User, title: 'Profil admin', description: 'Consultez vos informations et modifiez votre mot de passe.', to: '/user/admin/profile', tone: 'sage' },
   ], []);
 
   return (
@@ -87,10 +93,18 @@ export default function HomeAdmin() {
       )}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Truck} label="Livreurs actifs" value={stats.livreur || 0} detail="Disponibles pour livraison" tone="blue" />
-        <StatCard icon={Receipt} label="Commandes en ligne" value={stats.orders || 0} detail="A traiter ou livrer" tone="green" />
-        <StatCard icon={WalletCards} label="Livraisons effectuees" value={stats.livrison || 0} detail="Historique operationnel" tone="gold" />
-        <StatCard icon={CalendarDays} label="Reservations" value={stats.reservation || 0} detail="Tables planifiees" tone="red" />
+        <button type="button" onClick={() => navigate('/user/admin/livreurs')} className="text-left">
+          <StatCard icon={Truck} label="Livreurs actifs" value={stats.livreur || 0} detail="Disponibles pour livraison" tone="blue" />
+        </button>
+        <button type="button" onClick={() => navigate('/user/admin/orders')} className="text-left">
+          <StatCard icon={Receipt} label="Commandes en ligne" value={stats.orders || 0} detail="A traiter ou livrer" tone="green" />
+        </button>
+        <button type="button" onClick={() => navigate('/user/admin/livrisons')} className="text-left">
+          <StatCard icon={WalletCards} label="Livraisons effectuees" value={stats.livrison || 0} detail="Historique operationnel" tone="gold" />
+        </button>
+        <button type="button" onClick={() => navigate('/user/admin/reservations')} className="text-left">
+          <StatCard icon={CalendarDays} label="Reservations" value={stats.reservation || 0} detail="Tables planifiees" tone="red" />
+        </button>
       </section>
 
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

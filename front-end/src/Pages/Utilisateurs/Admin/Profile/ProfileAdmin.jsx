@@ -1,44 +1,77 @@
 import { useState, useEffect } from "react";
-import { Camera, CheckCircle2, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, XCircle, Key, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import api, { storageUrl } from "../../../../Api/api";
 
 export default function ProfileAdmin() {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState({
     name: "",
     num: "",
     address: "",
     email: "",
+    image: null,
+    preview: null,
     photo: null,
-    preview: null
+    password: "",
+    password_confirmation: ""
   });
   const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState(""); // 'success' or 'error'
+  const [messageType, setMessageType] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUserData(prev => ({
-          ...prev,
-          name: parsedUser.name || "Admin",
-          num: parsedUser.num || "",
-          address: parsedUser.address || "",
-          email: parsedUser.email || ""
-        }));
-      } catch (error) {
-        console.error("Erreur lors du parsing du user:", error);
-        setUserData(prev => ({
-          ...prev,
-          name: "Admin"
-        }));
-      }
+    if (!storedUser) {
+      navigate('/login');
+      return;
     }
-  }, []);
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      if (!parsedUser?.id) {
+        navigate('/login');
+        return;
+      }
+      fetchUserProfile(parsedUser.id);
+    } catch (error) {
+      console.error("Erreur lors du parsing de l'utilisateur :", error);
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const fetchUserProfile = async (id) => {
+    try {
+      const response = await api.get(`/users/${id}`);
+      const user = response.data;
+      setUserData((prev) => ({
+        ...prev,
+        name: user.name || "",
+        num: user.num || "",
+        address: user.address || "",
+        email: user.email || "",
+        image: user.image || null,
+        preview: user.image ? storageUrl(user.image) : null,
+        password: "",
+        password_confirmation: ""
+      }));
+    } catch (error) {
+      console.error("Erreur de chargement du profil admin :", error);
+      setMessageType("error");
+      setMessage("Impossible de charger le profil. Veuillez réessayer plus tard.");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 4000);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setUserData(prev => ({
+      setUserData((prev) => ({
         ...prev,
         photo: file,
         preview: URL.createObjectURL(file)
@@ -48,7 +81,7 @@ export default function ProfileAdmin() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       [name]: value
     }));
@@ -56,104 +89,125 @@ export default function ProfileAdmin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const response = await fetch(`https://restaurant-qom1.onrender.com/api/users/${storedUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          name: userData.name,
-          num: userData.num,
-          address: userData.address,
-          email: userData.email
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
+    if (userData.password && userData.password !== userData.password_confirmation) {
+      setMessageType("error");
+      setMessage("Le mot de passe et sa confirmation ne correspondent pas.");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 4000);
+      return;
+    }
+
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      if (!storedUser?.id) {
+        navigate('/login');
+        return;
       }
 
-      await response.json();
-      
-      // Update local storage with new user data
-      localStorage.setItem("user", JSON.stringify({
-        ...storedUser,
-        name: userData.name,
-        num: userData.num,
-        address: userData.address,
-        email: userData.email
-      }));
+      const formData = new FormData();
+      formData.append('name', userData.name);
+      formData.append('num', userData.num);
+      formData.append('address', userData.address || '');
+      formData.append('email', userData.email);
+
+      if (userData.photo) {
+        formData.append('image', userData.photo);
+      }
+
+      if (userData.password) {
+        formData.append('password', userData.password);
+        formData.append('password_confirmation', userData.password_confirmation);
+      }
+
+      const response = await api.put(`/users/${storedUser.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
 
       setMessageType("success");
       setMessage("Votre profil a été mis à jour avec succès !");
-      setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 3000);
+      if (response.data?.user) {
+        const updatedUser = {
+          ...storedUser,
+          name: response.data.user.name || userData.name,
+          email: response.data.user.email || userData.email,
+          num: response.data.user.num || userData.num,
+          address: response.data.user.address || userData.address,
+          image: response.data.user.image || userData.image
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      } else {
+        localStorage.setItem("user", JSON.stringify({
+          ...storedUser,
+          name: userData.name,
+          email: userData.email,
+          num: userData.num,
+          address: userData.address
+        }));
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       setMessageType("error");
-      setMessage("Une erreur est survenue lors de la mise à jour du profil");
+      setMessage("Une erreur est survenue lors de la mise à jour du profil.");
+    } finally {
       setTimeout(() => {
         setMessage("");
         setMessageType("");
-      }, 3000);
+      }, 4000);
     }
   };
 
   const handleBack = () => {
-    window.history.back();
+    navigate('/user/admin');
   };
 
-  // Image par défaut générée depuis ui-avatars
   const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    userData.name
+    userData.name || 'Admin'
   )}&background=0D8ABC&color=fff&size=128`;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12">
+        <div className="rounded-2xl border border-stone-200 bg-white px-8 py-10 shadow-lg">
+          <p className="text-lg font-semibold text-slate-700">Chargement du profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">👤 Mon Profil</h2>
+      <h2 className="text-2xl font-bold text-slate-900 mb-6">👤 Profil Admin</h2>
 
       {message && (
-        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg transform transition-all duration-500 ease-in-out ${
-          messageType === "success" 
-            ? "bg-green-100 border-l-4 border-green-500" 
-            : "bg-red-100 border-l-4 border-red-500"
+        <div className={`fixed top-4 right-4 p-4 rounded-xl shadow-lg transition ${
+          messageType === "success" ? "bg-emerald-100 border border-emerald-300 text-emerald-900" : "bg-rose-100 border border-rose-300 text-rose-900"
         }`}>
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             {messageType === "success" ? (
-              <CheckCircle2 className="h-6 w-6 text-green-500 mr-2" />
+              <CheckCircle2 className="h-5 w-5" />
             ) : (
-              <XCircle className="h-6 w-6 text-red-500 mr-2" />
+              <XCircle className="h-5 w-5" />
             )}
-            <p className={`font-medium ${
-              messageType === "success" ? "text-green-700" : "text-red-700"
-            }`}>
-              {message}
-            </p>
+            <span className="text-sm font-semibold">{message}</span>
           </div>
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-md p-6 space-y-6 hover:shadow-lg transition-shadow duration-300"
-      >
-        {/* Photo */}
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24 group">
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl bg-white p-8 shadow-xl">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center">
+          <div className="relative w-28 h-28 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
             <img
               src={userData.preview || defaultAvatar}
-              alt="Profil admin"
-              className="w-full h-full object-cover rounded-full border-2 border-gray-200 transition-transform duration-300 group-hover:scale-105"
+              alt="Avatar admin"
+              className="h-full w-full object-cover"
             />
-            <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors duration-300 shadow-lg">
-              <Camera size={20} />
+            <label className="absolute bottom-0 right-0 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg hover:bg-slate-800 transition-colors">
+              <Camera size={18} />
               <input
                 type="file"
                 accept="image/*"
@@ -163,93 +217,101 @@ export default function ProfileAdmin() {
             </label>
           </div>
           <div>
-            <p className="text-gray-700 font-medium text-lg">{userData.name || "Chargement..."}</p>
+            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Compte connecté</p>
+            <h3 className="mt-2 text-2xl font-bold text-slate-900">{userData.name || 'Administrateur'}</h3>
+            <p className="mt-1 text-sm text-slate-500">Mettez à jour vos informations personnelles et mot de passe.</p>
           </div>
         </div>
-        
-        <div>
-          <label className="block text-gray-600 mb-2 font-medium">Nom</label>
-          <input
-            type="text"
-            name="name"
-            value={userData.name}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            placeholder="Entrez votre nom"
-            required
-          />
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Nom</span>
+            <input
+              name="name"
+              type="text"
+              value={userData.name}
+              onChange={handleInputChange}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Email</span>
+            <input
+              name="email"
+              type="email"
+              value={userData.email}
+              onChange={handleInputChange}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </label>
         </div>
 
-        <div>
-          <label className="block text-gray-600 mb-2 font-medium">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={userData.email}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            placeholder="Entrez votre email"
-            required
-          />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Téléphone</span>
+            <input
+              name="num"
+              type="tel"
+              value={userData.num}
+              onChange={handleInputChange}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Adresse</span>
+            <input
+              name="address"
+              type="text"
+              value={userData.address}
+              onChange={handleInputChange}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            />
+          </label>
         </div>
 
-        <div>
-          <label className="block text-gray-600 mb-2 font-medium">Numéro de téléphone</label>
-          <input
-            type="tel"
-            name="num"
-            value={userData.num}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            placeholder="Entrez votre numéro de téléphone"
-            required
-          />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Nouveau mot de passe</span>
+            <div className="relative">
+              <Key className="pointer-events-none absolute left-4 top-4 text-slate-400" size={18} />
+              <input
+                name="password"
+                type="password"
+                value={userData.password}
+                onChange={handleInputChange}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                placeholder="Laisser vide pour ne pas changer"
+              />
+            </div>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Confirmer le mot de passe</span>
+            <input
+              name="password_confirmation"
+              type="password"
+              value={userData.password_confirmation}
+              onChange={handleInputChange}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              placeholder="Confirmation"
+            />
+          </label>
         </div>
 
-        <div>
-          <label className="block text-gray-600 mb-2 font-medium">Adresse</label>
-          <input
-            type="text"
-            name="address"
-            value={userData.address}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            placeholder="Entrez votre adresse"
-          />
-        </div>
-
-        {/* Bouton enregistrer */}
-        <div className="text-right">
-          <button
-            type="submit"
-            className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-medium text-white transition duration-300 ease-out rounded-lg shadow-md group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          >
-            <span className="absolute inset-0 flex items-center justify-center w-full h-full text-white duration-300 -translate-x-full bg-gradient-to-r from-blue-700 to-blue-800 group-hover:translate-x-0 ease">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </span>
-            <span className="absolute flex items-center justify-center w-full h-full text-white transition-all duration-300 transform group-hover:translate-x-full ease">Enregistrer</span>
-            <span className="relative invisible">Enregistrer</span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button type="button" onClick={handleBack} className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+            <ArrowLeft className="mr-2" size={18} /> Retour
+          </button>
+          <button type="submit" className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+            Enregistrer les modifications
           </button>
         </div>
       </form>
-
-      {/* Bouton pour revenir */}
-      <div className="mt-6 text-center">
-        <button
-          onClick={handleBack}
-          className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-medium text-white transition duration-300 ease-out rounded-lg shadow-md group bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700"
-        >
-          <span className="absolute inset-0 flex items-center justify-center w-full h-full text-white duration-300 -translate-x-full bg-gradient-to-r from-gray-600 to-gray-700 group-hover:translate-x-0 ease">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-          </span>
-          <span className="absolute flex items-center justify-center w-full h-full text-white transition-all duration-300 transform group-hover:translate-x-full ease">Retour</span>
-          <span className="relative invisible">Retour</span>
-        </button>
-      </div>
     </div>
   );
 }

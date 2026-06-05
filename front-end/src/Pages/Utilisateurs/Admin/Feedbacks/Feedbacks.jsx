@@ -5,6 +5,7 @@ import { Star, Smile, Meh, Frown, Trash2, ArrowLeft, X, MessageSquare, CheckCirc
 
 export default function Feedbacks() {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const navigate = useNavigate();
@@ -14,11 +15,14 @@ export default function Feedbacks() {
   }, []);
 
   const fetchFeedbacks = async () => {
+    setIsLoading(true);
     try {
       const res = await api.get("/feedback");
-      setFeedbacks(res.data);
+      setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Erreur de chargement :", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,16 +130,27 @@ export default function Feedbacks() {
         )}
 
         {/* Grille des avis */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {feedbacks.map((feedback) => (
-            <div
-              key={feedback.id}
-              className={`bg-white rounded-lg shadow p-6 border ${
-                feedback.sentiment === 'positive' ? 'border-green-200' :
-                feedback.sentiment === 'negative' ? 'border-red-200' :
-                'border-yellow-200'
-              }`}
-            >
+        {isLoading ? (
+          <div className="rounded-xl bg-white p-8 text-center text-slate-600 shadow-sm">
+            Chargement des avis en cours...
+          </div>
+        ) : feedbacks.length === 0 ? (
+          <div className="rounded-xl bg-white p-8 text-center text-slate-600 shadow-sm">
+            <MessageSquare className="mx-auto mb-4 h-10 w-10 text-blue-600" />
+            <p className="text-lg font-semibold">Aucun feedback trouvé pour le moment.</p>
+            <p className="mt-2 text-sm text-slate-500">Les clients n'ont pas encore soumis d'avis.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {feedbacks.map((feedback) => (
+              <div
+                key={feedback.id}
+                className={`bg-white rounded-lg shadow p-6 border ${
+                  feedback.sentiment === 'positive' ? 'border-green-200' :
+                  feedback.sentiment === 'negative' ? 'border-red-200' :
+                  'border-yellow-200'
+                }`}
+              >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">{getSentimentEmoji(feedback.sentiment)}</span>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use PDOException;
 
 class UserController extends Controller
@@ -31,19 +32,29 @@ class UserController extends Controller
         if(!$user){
             return response()->json(["message"=>"Utilisateur non trouvé"],404);
         }else{
-        $users=$request->validate([
+        $users =$request->validate([
             "name" => "required|string",
             "num" => "required|numeric",
             "address" => "nullable|string",
             "email" => "required|email|unique:users,email," . $id,
             "image" => "nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048",
+            "password" => "nullable|string|min:8|confirmed",
         ]);
+
         if ($request->hasFile('image')) {
             $image = $request->file('image')->store('profileAdmin', 'public');
             $users['image'] = $image;
         }
-            $user->update($users);
-            return response()->json(['message'=>'User updated successfully']);
+
+        if (!empty($users['password'])) {
+            $users['password'] = Hash::make($users['password']);
+        } else {
+            unset($users['password']);
+            unset($users['password_confirmation']);
+        }
+
+        $user->update($users);
+        return response()->json(['message' => 'User updated successfully', 'user' => $user]);
         }
         }catch(PDOException $e){
             return response()->json(["message"=>"Erreur lors de la mise à jour de l'utilisateur"],404);
