@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ -z "$APP_KEY" ]; then
+  APP_KEY=$(php artisan key:generate --show)
+fi
+
 cat > /var/www/html/.env << ENVFILE
 APP_NAME=SRMS
 APP_ENV=production
