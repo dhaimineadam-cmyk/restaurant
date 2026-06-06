@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../../Api/api";
-import { Star, Smile, Meh, Frown, Trash2, ArrowLeft, X, MessageSquare, CheckCircle2, AlertCircle } from "lucide-react";
-
+import { Star, Trash2, ArrowLeft, X, MessageSquare, CheckCircle2, AlertCircle } from "lucide-react";
+ 
 export default function Feedbacks() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const navigate = useNavigate();
-
+ 
   useEffect(() => {
     fetchFeedbacks();
   }, []);
-
+ 
   const fetchFeedbacks = async () => {
     setIsLoading(true);
     try {
@@ -25,61 +25,33 @@ export default function Feedbacks() {
       setIsLoading(false);
     }
   };
-
+ 
   const handleDelete = async (id) => {
     try {
       await api.delete(`/feedback/destroy/${id}`);
-      setNotification({
-        show: true,
-        type: 'success',
-        message: 'Avis supprimé avec succès !'
-      });
+      setNotification({ show: true, type: 'success', message: 'Avis supprimé avec succès !' });
       setConfirmDeleteId(null);
       fetchFeedbacks();
-      setTimeout(() => {
-        setNotification({ show: false, type: '', message: '' });
-      }, 3000);
+      setTimeout(() => setNotification({ show: false, type: '', message: '' }), 3000);
     } catch (err) {
-      setNotification({
-        show: true,
-        type: 'error',
-        message: 'Erreur lors de la suppression de l\'avis.'
-      });
-      setTimeout(() => {
-        setNotification({ show: false, type: '', message: '' });
-      }, 3000);
+      setNotification({ show: true, type: 'error', message: "Erreur lors de la suppression de l'avis." });
+      setTimeout(() => setNotification({ show: false, type: '', message: '' }), 3000);
     }
   };
-
+ 
   const getSentimentEmoji = (sentiment) => {
     switch (sentiment) {
-      case "positive":
-        return "😊";
-      case "neutral":
-        return "😐";
-      case "negative":
-        return "😞";
-      default:
-        return "😐";
+      case "positive": return "😊";
+      case "neutral": return "😐";
+      case "negative": return "😞";
+      default: return "😐";
     }
   };
-
-  const getSentimentColor = (sentiment) => {
-    switch (sentiment) {
-      case "positive":
-        return "bg-green-50 border-green-200";
-      case "neutral":
-        return "bg-yellow-50 border-yellow-200";
-      case "negative":
-        return "bg-red-50 border-red-200";
-      default:
-        return "bg-gray-50 border-gray-200";
-    }
-  };
-
+ 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+ 
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between">
@@ -92,19 +64,17 @@ export default function Feedbacks() {
             </button>
             <div className="flex items-center space-x-3">
               <MessageSquare className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-800">
-                Avis des clients
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-800">Avis des clients</h1>
             </div>
           </div>
         </div>
-
+ 
         {/* Notification */}
         {notification.show && (
           <div className="fixed top-4 right-4 z-50">
             <div className={`rounded-lg shadow-lg p-4 ${
-              notification.type === 'success' 
-                ? 'bg-green-100 border border-green-400' 
+              notification.type === 'success'
+                ? 'bg-green-100 border border-green-400'
                 : 'bg-red-100 border border-red-400'
             }`}>
               <div className="flex items-center">
@@ -128,8 +98,8 @@ export default function Feedbacks() {
             </div>
           </div>
         )}
-
-        {/* Grille des avis */}
+ 
+        {/* Contenu */}
         {isLoading ? (
           <div className="rounded-xl bg-white p-8 text-center text-slate-600 shadow-sm">
             Chargement des avis en cours...
@@ -151,37 +121,38 @@ export default function Feedbacks() {
                   'border-yellow-200'
                 }`}
               >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">{getSentimentEmoji(feedback.sentiment)}</span>
-                  <h3 className="text-lg font-medium text-gray-800 line-clamp-2">{feedback.comment}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-3xl">{getSentimentEmoji(feedback.sentiment)}</span>
+                    <h3 className="text-lg font-medium text-gray-800 line-clamp-2">{feedback.comment}</h3>
+                  </div>
                 </div>
+ 
+                <div className="flex items-center space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < feedback.rating
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+ 
+                <button
+                  onClick={() => setConfirmDeleteId(feedback.id)}
+                  className="w-full mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+                >
+                  <Trash2 className="h-5 w-5 mr-2" />
+                  Supprimer l'avis
+                </button>
               </div>
-
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < feedback.rating
-                        ? "text-yellow-400 fill-current"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={() => setConfirmDeleteId(feedback.id)}
-                className="w-full mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
-              >
-                <Trash2 className="h-5 w-5 mr-2" />
-                Supprimer l'avis
-              </button>
-            </div>
-          ))}
-        </div>
-
+            ))}
+          </div>
+        )}
+ 
         {/* Modal de confirmation */}
         {confirmDeleteId && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -217,6 +188,7 @@ export default function Feedbacks() {
             </div>
           </div>
         )}
+ 
       </div>
     </div>
   );
