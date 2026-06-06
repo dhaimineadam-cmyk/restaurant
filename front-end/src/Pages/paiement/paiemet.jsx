@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../../Api/api";
 
 const Payment = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [tables, setTables] = useState([]);
+    const location = useLocation();
+    const initialTables = Array.isArray(location.state?.tables) ? location.state.tables : [];
+    const [tables, setTables] = useState(initialTables);
     const [categories, setCategories] = useState([]);
     const [menus, setMenus] = useState([]);
     const [servants, setServants] = useState([]); // Assuming the logged-in user is a servant
@@ -90,7 +92,7 @@ const Payment = () => {
                     api.get("/servants"),
                 ]);
 
-                setTables(validateArray(tablesRes.data?.data));
+                setTables(validateArray(tablesRes.data?.data ?? tablesRes.data));
                 setCategories(validateArray(categoriesRes.data?.data));
                 const availableServants = validateArray(servantsRes.data);
                 setServants(availableServants);

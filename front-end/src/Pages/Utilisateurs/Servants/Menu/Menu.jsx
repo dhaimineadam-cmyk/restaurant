@@ -136,7 +136,9 @@ export default function MenuLivreur() {
                     >
                       <div className="relative aspect-w-16 aspect-h-9">
                         <img
-                          src={`https://restaurant-qom1.onrender.com/storage/${menu.image}`}
+                          src={typeof menu.image === 'string' && menu.image.startsWith('http')
+                            ? menu.image
+                            : `https://restaurant-qom1.onrender.com/storage/${menu.image}`}
                           alt={menu.title}
                           className="w-full h-48 object-cover"
                         />

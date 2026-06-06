@@ -15,6 +15,7 @@ const CommandesLocales = () => {
   const [servantFilter, setServantFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
   const [servants, setServants] = useState([]);
+  const [tables, setTables] = useState([]);
   const navigate = useNavigate();
   const [pagination, setPagination] = useState({ currentPage: 1, lastPage: 1 });
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,18 @@ const CommandesLocales = () => {
       }
     };
     fetchServants();
+  }, []);
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await api.get('/tables');
+        setTables(response.data?.data || response.data || []);
+      } catch (error) {
+        console.error("Erreur tables:", error);
+      }
+    };
+    fetchTables();
   }, []);
 
   // Gestion des erreurs
@@ -438,6 +451,7 @@ const CommandesLocales = () => {
           </h2>
           <Link 
             to="/payment" 
+            state={{ fromServant: true, tables }}
             className="no-underline w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md"
           >
             <Plus size={18} />
